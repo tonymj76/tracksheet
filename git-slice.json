@@ -1,0 +1,10 @@
+{
+  "repoUrl": "https://github.com/TrackStreetPlatform/html-caching-service",
+  "folders": ["./"],
+  "branch": "main",
+  "ignore": [
+    "git-slice.json",
+    ".github/workflows/git-slice.yml",
+    ".github/workflows/git-slice-v2.yml"
+  ]
+}
