@@ -1,9 +1,10 @@
 package main
 
 import (
+	"cache_service/search"
 	"fmt"
 )
 
 func main() {
-	fmt.Println("hello TS-005:")
+	fmt.Println(search.Run("https://www.jumia.com.ng/"))
 }
