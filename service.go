@@ -2,9 +2,8 @@ package main
 
 import (
 	"cache_service/search"
-	"fmt"
 )
 
 func main() {
-	fmt.Println(search.Run("https://www.vitacost.com/"))
+	search.Run("https://www.vitacost.com/robots.txt")
 }
