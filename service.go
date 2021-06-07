@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	fmt.Println(search.Run("https://www.jumia.com.ng/"))
+	fmt.Println(search.Run("https://www.vitacost.com/"))
 }
