@@ -1,16 +1,9 @@
 package search
 
-type ProductDetail struct {
-	Name,
-	Title,
-	Description,
-	Price,
-	SKU,
-	UPC string
-}
+import "cache_service/structure"
 
 // _
-func Run(url string) map[string][]ProductDetail {
-	var product = make(map[string][]ProductDetail)
-	return product
+func Run(url string) {
+	var product *structure.ProductDescription
+	Match(product, url)
 }
