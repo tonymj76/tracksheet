@@ -4,6 +4,12 @@ import (
 	"cache_service/search"
 )
 
+// var name = "https://www.vitacost.com"
+
+// var name = "https://www.konga.com"
+
+var name = "https://www.obeezi.com/robots.txt"
+
 func main() {
-	search.Run("https://www.vitacost.com")
+	search.Run(name)
 }
