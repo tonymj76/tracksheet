@@ -1,13 +1,12 @@
 package search
 
 import (
-	"cache_service/structure"
 	"fmt"
 	"log"
 )
 
 type Matcher interface {
-	Search(url string) ([]*structure.Result, error)
+	Search(url string) ([]string, error)
 }
 
 func Match(matcher Matcher, url string) {
