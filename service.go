@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	search.Run("https://www.vitacost.com/robots.txt")
+	search.Run("https://www.vitacost.com")
 }
