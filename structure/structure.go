@@ -79,7 +79,7 @@ func getSiteMapURL(matchString string) (values []string) {
 }
 
 func parseSiteMapURL(matchString string) (vs []string) {
-	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^<]+)`)
+	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^<">]+)`)
 	vs = validString.FindAllString(matchString, -1)
 	return
 }
