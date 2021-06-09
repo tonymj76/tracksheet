@@ -75,12 +75,23 @@ func getSiteMapURL(matchString string) (value string) {
 	return
 }
 
-func parseSiteMapURL(matchString, host string) (vs []string) {
+func parseSiteMapURL(matchString, host string) (validLink []string) {
 	validString := regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^<">]+)`, host))
-	// for _, link := range validString.FindAllString(matchString, -1)[3] {
-	// 	if strings.Contains(strings.ToLower(link))
-	// }
-	vs = validString.FindAllString(matchString, -1)
+	for _, link := range validString.FindAllString(matchString, -1)[4:10] {
+		path, err := url.Parse(link)
+		if err != nil {
+			log.Fatalln(err)
+			return
+		}
+		extension := strings.Split(path.Path, ".")
+		if len(extension) > 1 {
+			if strings.Contains(extension[1], "html") || strings.Contains(extension[1], "php") {
+				validLink = append(validLink, link)
+			}
+		} else {
+			validLink = append(validLink, link)
+		}
+	}
 	return
 }
 
