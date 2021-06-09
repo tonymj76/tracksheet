@@ -3,11 +3,12 @@ package structure
 import (
 	"encoding/xml"
 	"fmt"
-	"gopkg.in/headzoo/surf.v1"
 	"log"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"gopkg.in/headzoo/surf.v1"
 )
 
 var robotURL = "%s://%s/robots.txt"
@@ -63,31 +64,32 @@ func (prodDesc *ProductDescription) Search(urlString string) (result []string, e
 		return
 	}
 	siteMap := getSiteMapURL(bow.Body())
-	result, err = prodDesc.retrieve(siteMap)
+	result, err = prodDesc.retrieve(siteMap, parseURL.Hostname())
 	return
 }
 
 func getSiteMapURL(matchString string) (value string) {
-	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.xml\b\s)`)
+	//regex here map a url with a space or no space
+	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.xml$)|(?P<path2>[^\s]*\.xml\s+$)`)
 	value = strings.Trim(validString.FindString(matchString), "\n")
 	return
 }
 
-func parseSiteMapURL(matchString string) (vs []string) {
-	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^<">]+)`)
+func parseSiteMapURL(matchString, host string) (vs []string) {
+	validString := regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^<">]+)`, host))
+	// for _, link := range validString.FindAllString(matchString, -1)[3] {
+	// 	if strings.Contains(strings.ToLower(link))
+	// }
 	vs = validString.FindAllString(matchString, -1)
 	return
 }
 
 // retrieve performs a HTTP Get request for the sitemap xml and decodes the results
-func (prodDesc *ProductDescription) retrieve(siteMap string) ([]string, error) {
+func (prodDesc *ProductDescription) retrieve(siteMap, host string) ([]string, error) {
 	bow := surf.NewBrowser()
-	bow.AddRequestHeader("Accept", "text/html")
-	bow.AddRequestHeader("Accept-Charset", "utf8")
 	if err := bow.Open(siteMap); err != nil {
 		log.Fatalln(err)
 		return nil, err
 	}
-	fmt.Println(bow.Body())
-	return parseSiteMapURL(bow.Body()), nil
+	return parseSiteMapURL(bow.Body(), host), nil
 }
