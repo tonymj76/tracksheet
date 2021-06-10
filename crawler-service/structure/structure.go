@@ -1,8 +1,12 @@
 package structure
 
 import (
+	"compress/gzip"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -13,25 +17,27 @@ import (
 var robotURL = "%s://%s/robots.txt"
 
 type ProductDescription struct{}
+type GzProduct struct{}
 
-// //Search _
-// func (prodDesc *ProductDescription) Search(urlString string) (result []*Result, err error) {
-// 	parseURL, err := url.Parse(urlString)
-// 	if err != nil {
-// 		log.Println(err)
-// 		return
-// 	}
-// 	c := colly.NewCollector()
-// 	c.OnHTML("body", func(el *colly.HTMLElement) {
-// 		fmt.Println(el.DOM)
-// 		fmt.Println(el.Text)
-// 	})
+// Search GzProduct
+func (gzProduct *GzProduct) Search(urlString string) (result []string, err error) {
+	parseURL, err := url.Parse(urlString)
+	fmt.Print(parseURL)
+	reader, err := gzip.NewReader(getReader(urlString))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	byteReader, err := ioutil.ReadAll(reader)
+	fmt.Println(string(byteReader))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	result = parseSiteMapURL(string(byteReader), parseURL.Hostname())
+	return
+}
 
-// 	err = c.Visit(fmt.Sprintf(robotURL, parseURL.Scheme, parseURL.Hostname()))
-// 	return
-// }
-
-// Search
+// Search normal urls
 func (prodDesc *ProductDescription) Search(urlString string) (result []string, err error) {
 	parseURL, err := url.Parse(urlString)
 	if err != nil {
@@ -93,4 +99,16 @@ func (prodDesc *ProductDescription) retrieve(siteMap, host string) ([]string, er
 		return nil, err
 	}
 	return parseSiteMapURL(bow.Body(), host), nil
+}
+
+func getReader(url_path string) io.ReadCloser {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url_path, nil)
+	req.Header.Add("Accept", `text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8`)
+	req.Header.Add("User-Agent", `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11`)
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("error getting reader %s", err)
+	}
+	return resp.Body
 }
