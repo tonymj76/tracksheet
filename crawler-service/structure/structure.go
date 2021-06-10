@@ -51,9 +51,15 @@ func (prodDesc *ProductDescription) Search(urlString string) (result []string, e
 }
 
 func getSiteMapURL(matchString string) (value string) {
-	//regex here map a url with a space or no space
+	//regex here map a url with a space or no space but must end with .xml
 	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.xml$)|(?P<path2>[^\s]*\.xml\s+$)`)
-	value = strings.Trim(validString.FindString(matchString), "\n")
+	for _, link := range validString.FindAllString(matchString, -1) {
+		link = strings.Trim(link, "\n")
+		if strings.Contains(strings.ToLower(link), "product") {
+			return link
+		}
+		return link
+	}
 	return
 }
 
