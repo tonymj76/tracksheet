@@ -22,6 +22,9 @@ type GzProduct struct{}
 // Search GzProduct
 func (gzProduct *GzProduct) Search(urlString string) (result []string, err error) {
 	parseURL, err := url.Parse(urlString)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	reader, err := gzip.NewReader(getReader(urlString))
 	if err != nil {
 		log.Fatalln(err)
