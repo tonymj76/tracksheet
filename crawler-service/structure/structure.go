@@ -86,6 +86,8 @@ func parseSiteMapURL(matchString, host string) (validLink []string) {
 // retrieve performs a HTTP Get request for the sitemap xml and decodes the results
 func (prodDesc *ProductDescription) retrieve(siteMap, host string) ([]string, error) {
 	bow := surf.NewBrowser()
+	bow.AddRequestHeader("Accept", "text/html")
+	bow.AddRequestHeader("Accept-Charset", "utf8")
 	if err := bow.Open(siteMap); err != nil {
 		log.Fatalln(err)
 		return nil, err
