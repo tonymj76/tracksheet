@@ -23,7 +23,7 @@ type GzProduct struct{}
 func (gzProduct *GzProduct) Search(urlString string) (result []string, err error) {
 	parseURL, err := url.Parse(urlString)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("make sure you entered a valid URL ", err)
 	}
 	reader, err := gzip.NewReader(getReader(urlString))
 	if err != nil {
@@ -43,8 +43,7 @@ func (gzProduct *GzProduct) Search(urlString string) (result []string, err error
 func (prodDesc *ProductDescription) Search(urlString string) (result []string, err error) {
 	parseURL, err := url.Parse(urlString)
 	if err != nil {
-		log.Println(err)
-		return
+		log.Fatalln("make sure you entered a valid URL ", err)
 	}
 	bow := surf.NewBrowser()
 	bow.AddRequestHeader("Accept", "text/html")
