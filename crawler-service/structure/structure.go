@@ -34,7 +34,7 @@ func (gzProduct *GzProduct) Search(urlString string) (result []string, err error
 		log.Println(err)
 		return
 	}
-	result = ParseSiteMapURL(string(byteReader), parseURL.Hostname())
+	result = parseSiteMapURL(string(byteReader), parseURL.Hostname())
 	return
 }
 
@@ -69,7 +69,7 @@ func getSiteMapURL(matchString string) (value string) {
 	return
 }
 
-func ParseSiteMapURL(matchString, host string) (validLink []string) {
+func parseSiteMapURL(matchString, host string) (validLink []string) {
 	validString := regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^<">]+)`, host))
 	for _, link := range validString.FindAllString(matchString, -1) {
 		path, err := url.Parse(link)
@@ -98,7 +98,7 @@ func (prodDesc *ProductDescription) retrieve(siteMap, host string) ([]string, er
 		log.Fatalln(err)
 		return nil, err
 	}
-	return ParseSiteMapURL(bow.Body(), host), nil
+	return parseSiteMapURL(bow.Body(), host), nil
 }
 
 func getReader(url_path string) io.ReadCloser {
