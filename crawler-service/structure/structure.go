@@ -30,7 +30,6 @@ func (gzProduct *GzProduct) Search(urlString string) (result []string, err error
 		log.Fatalln(err)
 	}
 	byteReader, err := ioutil.ReadAll(reader)
-	fmt.Println(string(byteReader))
 	if err != nil {
 		log.Println(err)
 		return
