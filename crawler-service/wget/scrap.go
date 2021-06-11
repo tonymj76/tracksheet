@@ -2,6 +2,7 @@ package wget
 
 import (
 	"bytes"
+	"cache_service/crawler-service/structure"
 	"fmt"
 	"log"
 	"net/url"
@@ -11,7 +12,7 @@ import (
 
 // Call shell command wget to download all files in url. The reason to use wget is that wget
 // works only in Linux.
-func WgetLink(url_path, depth string) string {
+func WgetLink(url_path, depth string) []string {
 	cmd := exec.Command("wget", "-U", "Mozilla/5.0", "-r", "-l", depth, url_path)
 	var outb, errb bytes.Buffer
 	cmd.Stdout = &outb
@@ -31,5 +32,5 @@ func WgetLink(url_path, depth string) string {
 	if err != nil {
 		fmt.Println("error ", err)
 	}
-	return errb.String()
+	return structure.ParseSiteMapURL(errb.String(), u.Hostname())
 }
