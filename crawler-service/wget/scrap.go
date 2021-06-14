@@ -7,18 +7,20 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 )
 
 // Call shell command wget to download all files in url. The reason to use wget is that wget
 // works only in Linux.
-func WgetLink(url_path, depth string) string {
+func WgetLink(url_path, depth string) []string {
 	cmd := exec.Command("wget", "-U", "Mozilla/5.0", "-r", "-l", depth, url_path)
 	var outb, errb bytes.Buffer
 	cmd.Stdout = &outb
 	cmd.Stderr = &errb
 	err := cmd.Run()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error runing command", err)
 	}
 	u, err := url.Parse(url_path)
 	if err != nil {
@@ -31,5 +33,17 @@ func WgetLink(url_path, depth string) string {
 	if err != nil {
 		fmt.Println("error ", err)
 	}
-	return errb.String()
+	return parseSiteMapURL(errb.String(), u.Host)
+}
+
+func parseSiteMapURL(matchString, host string) (validLink []string) {
+	validString := regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^\s]+)`, host))
+	for _, link := range validString.FindAllString(matchString, -1) {
+		if strings.Contains(link, "jpg") || strings.Contains(link, "png") {
+			continue
+		}
+		validLink = append(validLink, link)
+
+	}
+	return
 }
