@@ -48,7 +48,7 @@ func (prodDesc *ProductDescription) Search(urlString string) (result []string, e
 	bow.AddRequestHeader("Accept", "text/html")
 	bow.AddRequestHeader("Accept-Charset", "utf8")
 	if err = bow.Open(fmt.Sprintf(robotURL, parseURL.Scheme, parseURL.Hostname())); err != nil {
-		log.Fatalln(err)
+		log.Fatalln("error while opening link", err)
 		return
 	}
 	siteMap := getSiteMapURL(bow.Body())
@@ -74,7 +74,7 @@ func parseSiteMapURL(matchString, host string) (validLink []string) {
 	for _, link := range validString.FindAllString(matchString, -1) {
 		path, err := url.Parse(link)
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatalln("error while parsing link as url", err)
 			return
 		}
 		extension := strings.Split(path.Path, ".")
