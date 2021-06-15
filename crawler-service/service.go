@@ -1,15 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"cache_service/crawler-service/wget"
 	"cache_service/crawler-service/search"
+	"cache_service/crawler-service/wget"
 	"fmt"
 	"log"
 )
 
 // var name = "https://www.obeezi.com"
 var name = " https://www.amazon.com/sitemaps.2307ea63773dfee.sitemap_detail_us_txt_9_2_41_20.xml.gz"
+
 func main() {
 	data := wget.WgetLink("https://www.google.com/", "0")
 	fmt.Println(data)
