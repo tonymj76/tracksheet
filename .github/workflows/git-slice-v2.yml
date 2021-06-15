@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 1
+          fetch-depth: 0
       - name: Git Slice Pull
         uses: GitStartHQ/actions/GitSlicePull@git-slice
         with:
@@ -51,7 +51,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Setup Git
         run: |
@@ -79,5 +79,6 @@ jobs:
           upstream_git_token: ${{ env.UPSTREAM_GIT_TOKEN }}
           custom_commit_message: ${{ github.event.inputs.commitMessage }}
           slice_branch_to_push: ${{ github.event.inputs.branch }}
+          slice_default_branch: ${{ env.GIT_SLICE_DEFAULT_BRANCH }}
           push_pr: ${{ github.event.inputs.pushPr }}
           overide_previous_push: ${{ github.event.inputs.overide }}
