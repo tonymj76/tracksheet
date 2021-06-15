@@ -7,14 +7,14 @@ import (
 )
 
 // _
-func Run(url string) {
+func Run(url string) ([]string, error) {
 	url = strings.Trim(url, " ")
-	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.xml$)|(?P<path2>[^\s]*\.gz$)`)
+	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.gz$)`)
 	if validString.MatchString(url) {
 		var sitemapProject *structure.GzProduct
-		Match(sitemapProject, url)
+		return Match(sitemapProject, url)
 	} else {
 		var product *structure.ProductDescription
-		Match(product, url)
+		return Match(product, url)
 	}
 }
