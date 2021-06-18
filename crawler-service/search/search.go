@@ -2,6 +2,7 @@ package search
 
 import (
 	"cache_service/crawler-service/handler"
+	_ "cache_service/crawler-service/log"
 	"strings"
 
 	"github.com/sirupsen/logrus"
