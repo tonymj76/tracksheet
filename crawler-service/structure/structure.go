@@ -16,10 +16,13 @@ import (
 
 var robotURL = "%s://%s/robots.txt"
 
+// ProductDescription implements the Matcher interface.
 type ProductDescription struct{}
+
+// GzProduct implements the Matcher interface.
 type GzProduct struct{}
 
-// Search GzProduct
+// Search url with xml.zip
 func (gzProduct *GzProduct) Search(urlString string) (result []string, err error) {
 	parseURL, err := url.Parse(urlString)
 	if err != nil {
@@ -38,7 +41,7 @@ func (gzProduct *GzProduct) Search(urlString string) (result []string, err error
 	return
 }
 
-// Search normal urls
+// Search normal urls and append robots to the url path
 func (prodDesc *ProductDescription) Search(urlString string) (result []string, err error) {
 	parseURL, err := url.Parse(urlString)
 	if err != nil {
