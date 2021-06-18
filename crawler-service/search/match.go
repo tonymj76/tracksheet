@@ -1,9 +1,9 @@
 package search
 
 type Matcher interface {
-	Search(url string) ([]string, error)
+	Search() ([]string, error)
 }
 
-func Match(matcher Matcher, url string) ([]string, error) {
-	return matcher.Search(url)
+func Match(matcher Matcher) ([]string, error) {
+	return matcher.Search()
 }
