@@ -7,6 +7,8 @@ require (
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/headzoo/surf v1.0.0 // indirect
 	github.com/headzoo/ut v0.0.0-20181013193318-a13b5a7a02ca // indirect
+	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
+	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
 	gopkg.in/headzoo/surf.v1 v1.0.0
 )
