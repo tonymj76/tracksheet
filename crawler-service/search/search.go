@@ -1,21 +1,18 @@
 package search
 
 import (
-	"cache_service/crawler-service/structure"
-	"regexp"
+	"cache_service/crawler-service/handler"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
-// _
+var accept string = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+var userAgent string = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11"
+
+// Run is the entry point of the app
 func Run(url string) ([]string, error) {
 	url = strings.Trim(url, " ")
-
-	// check if the url is a xml.gz file
-	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.gz$)`)
-	if validString.MatchString(url) {
-		var sitemapProject *structure.GzProduct
-		return Match(sitemapProject, url)
-	}
-	var product *structure.ProductDescription
-	return Match(product, url)
+	conf := handler.NewConnect(logrus.New(), url, accept, userAgent)
+	return Match(conf)
 }
