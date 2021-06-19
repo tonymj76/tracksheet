@@ -81,6 +81,7 @@ func (c *Connection) Search() ([]string, error) {
 	return result, err
 }
 
+//getSiteMapURL retrieve the xml sitemap
 func getSiteMapURL(matchString string) (value string) {
 	//regex here map a url with a space or no space but must end with .xml
 	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.xml$)|(?P<path2>[^\s]*\.xml\s+$)`)
@@ -95,6 +96,7 @@ func getSiteMapURL(matchString string) (value string) {
 	return
 }
 
+//parseSiteMapURL retrieves all the url links from the html body
 func parseSiteMapURL(matchString, host string) (validLink []string) {
 	validString := regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^<">]+)`, host))
 	for _, link := range validString.FindAllString(matchString, -1) {
@@ -103,6 +105,7 @@ func parseSiteMapURL(matchString, host string) (validLink []string) {
 			log.Fatalln("error while parsing link as url", err)
 			return
 		}
+		// filter out static assets
 		extension := strings.Split(path.Path, ".")
 		if len(extension) > 1 {
 			if strings.Contains(extension[1], "html") || strings.Contains(extension[1], "php") {
