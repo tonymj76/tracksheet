@@ -6,6 +6,7 @@ import (
 	"github.com/gocolly/colly"
 )
 
+//given the url and depth, recursively get all related url of the site
 func GetUrl(link string, depth int) []*url.URL {
 	links := []*url.URL{}
 	c := colly.NewCollector(
