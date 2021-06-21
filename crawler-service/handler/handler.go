@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -49,8 +50,7 @@ func (c *Connection) Search() ([]string, error) {
 	}
 	defer recoverMe()
 	// check if the url is a xml.gz file
-	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.gz$)`)
-	if validString.MatchString(c.urlLink) {
+	if filepath.Ext(c.urlLink) == ".gz" {
 		resp, err := goClient(c.urlLink, c.accept, c.userAgent)
 		if err != nil {
 			c.Logger.WithError(err).Fatalln("failed to make request to the server")
@@ -151,6 +151,8 @@ func goClient(urlPath, accept, userAgent string) (*http.Response, error) {
 	req.Header.Add("User-Agent", userAgent)
 	req.Header.Add("Accept-Charset", "utf8")
 	resp, err := client.Do(req)
-
+	if resp.StatusCode == 200 {
+		logrus.Println(resp.Status)
+	}
 	return resp, err
 }
