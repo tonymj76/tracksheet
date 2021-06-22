@@ -14,6 +14,7 @@ var keywords = []string{
 	"women", "socks",
 }
 
+// GetUrl given the url and depth, recursively get all related url of the site
 func GetUrl(link string, depth int) []*url.URL {
 	validLink, err := url.Parse(link)
 	if err != nil {
