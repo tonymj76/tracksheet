@@ -51,7 +51,7 @@ func (c *Connection) Search() ([]string, error) {
 	defer recoverMe()
 	// check if the url is a xml.gz file
 	if filepath.Ext(c.urlLink) == ".gz" {
-		resp, err := goClient(c.urlLink, c.accept, c.userAgent)
+		resp, err := goClient(c.urlLink, c)
 		if err != nil {
 			c.Logger.WithError(err).Fatalln("failed to make request to the server")
 		}
@@ -68,7 +68,7 @@ func (c *Connection) Search() ([]string, error) {
 	}
 
 	// normal urls and append robots to the url path
-	resp, err := goClient(fmt.Sprintf(robotURL, parseURL.Scheme, parseURL.Hostname()), c.accept, c.userAgent)
+	resp, err := goClient(fmt.Sprintf(robotURL, parseURL.Scheme, parseURL.Hostname()), c)
 	if err != nil {
 		c.Logger.WithError(err).Fatalln("failed to get response")
 	}
@@ -120,7 +120,7 @@ func parseSiteMapURL(matchString, host string) (validLink []string) {
 
 // retrieve performs a HTTP Get request for the sitemap xml and decodes the results
 func (c *Connection) retrieve(siteMap, host string) ([]string, error) {
-	resp, err := goClient(siteMap, c.accept, c.userAgent)
+	resp, err := goClient(siteMap, c)
 	if err != nil {
 		c.Logger.WithError(err).Fatalln("failed to get response")
 	}
@@ -132,7 +132,7 @@ func (c *Connection) retrieve(siteMap, host string) ([]string, error) {
 }
 
 // goClient to make http request and set brower header
-func goClient(urlPath, accept, userAgent string) (*http.Response, error) {
+func goClient(urlPath string, c *Connection) (*http.Response, error) {
 	var (
 		client http.Client
 	)
@@ -147,12 +147,12 @@ func goClient(urlPath, accept, userAgent string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Accept", accept)
-	req.Header.Add("User-Agent", userAgent)
+	req.Header.Add("Accept", c.accept)
+	req.Header.Add("User-Agent", c.userAgent)
 	req.Header.Add("Accept-Charset", "utf8")
 	resp, err := client.Do(req)
-	if resp.StatusCode == 200 {
-		logrus.Println(resp.Status)
+	if resp.StatusCode != 200 {
+		c.Logger.Println(resp.Status)
 	}
 	return resp, err
 }
