@@ -11,6 +11,7 @@ type TrieNode struct {
 	numOfOccurence int
 	children map[string] *TrieNode
 	isWord bool
+	numOfWords int
 }
 
 type TrieChildren map[string] *TrieNode;
@@ -59,7 +60,6 @@ func (trie *TrieNode) Paternify() {
 
 	for _, current := range trie.children {
 		if trie.key == "gp" {
-			fmt.Println("==>>", current.key, current.numOfOccurence)
 		}
 		if current.numOfOccurence <= 1 {
 			common = append(common, current)
@@ -74,6 +74,7 @@ func (trie *TrieNode) Paternify() {
 
 			pattern.children = merge(pattern.children, node.children)
 
+			pattern.numOfWords += 1
 			if !pattern.isWord {
 				pattern.isWord = node.isWord
 			}
@@ -94,7 +95,6 @@ func (trie *TrieNode) getWords(words []string, word string, sep string) []string
 	}
 
 	for _, c := range trie.children {
-		fmt.Println(c.key)
 		words = c.getWords(words, word + c.key + sep, sep)
 	}
 
@@ -116,17 +116,32 @@ func (trie *TrieNode) String() string {
 	return ""
 }
 
-func main() {
-	urls := []string{"https://amazon.com/product/123333", "https://amazon.com/product/456899", "https://amazon.com/gp/5565565", "https://amazon.com/gp/556556", "https://amazon.com/gp/55655", "https://amazon.com/gp/5565565/abc", "https://amazon.com/gp/5565565/abc/ref=ab"}
-	trie := PrefixTree()
+func GetUnique(strs []string, sep string) []string {
+	fmt.Println(len(strs))
 
-	for _, url := range urls {
-		trie.Add(strings.Split(url, "/"))
-	}
+		trie := PrefixTree()
 
-	fmt.Println(trie.GetWords("/"))
+		for _, str := range strs {
+			trie.Add(strings.Split(str, sep))
+		}
+
+	return trie.GetWords(sep)
 }
+// func main() {
+// 	urls := []string{
+	// "https://amazon.com/product/123333", 
+	// "https://amazon.com/product/456899", 
+	// "https://amazon.com/gp/5565565", 
+	// "https://amazon.com/gp/556556", 
+	// "https://amazon.com/gp/55655", 
+	// "https://amazon.com/gp/5565565/abc", 
+	// "https://amazon.com/gp/5565565/abc/ref=ab"}
+// 	trie := PrefixTree()
 
+// 	for _, url := range urls {
+// 		trie.Add(strings.Split(url, "/"))
+// 	}
 
-
+// 	fmt.Println(trie.GetWords("/"))
+// }
 
