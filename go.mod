@@ -3,7 +3,7 @@ module cache_service
 go 1.13
 
 require (
-	github.com/PuerkitoBio/goquery v1.6.1 // indirect
+	github.com/PuerkitoBio/goquery v1.6.1
 	github.com/gocolly/colly v1.2.0
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/headzoo/surf v1.0.0 // indirect
