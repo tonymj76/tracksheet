@@ -194,7 +194,7 @@ func RelatedURL(urls []string) (duplicateURL []string) {
 // check checks if a string (str) exits in strs []string
 func check(str string, strs []string) bool {
 	for _, item := range strs {
-		if compareDuplicate(item, s) {
+		if compareDuplicate(item, str) {
 			return true
 		}
 	}
