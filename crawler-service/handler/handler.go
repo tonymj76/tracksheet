@@ -96,7 +96,7 @@ func getSiteMapURL(matchString string) (value string) {
 	return
 }
 
-//parseSiteMapURL retrieves all the url links from the html body
+// parseSiteMapURL retrieves all the url links from the html body
 func parseSiteMapURL(matchString, host string) (validLink []string) {
 	validString := regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^<">]+)`, host))
 	for _, link := range validString.FindAllString(matchString, -1) {
