@@ -14,9 +14,7 @@ var name = "https://www.obeezi.com"
 // var name = "https://www.google.com/"
 
 func main() {
-	// data := recursive.GetUrl(name, 2)
-	// fmt.Println(data)
-	links, err := search.Run(name)
+	links, err := search.Run(name, 0)
 	if err != nil {
 		log.Fatalln(err)
 	}
