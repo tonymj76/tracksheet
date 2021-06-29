@@ -21,19 +21,19 @@ func GetUrl(link string, depth int) ([]string, error) {
 	})
 
 	err := c.Visit(link)
-	return RelatedURL(links), err
+	return RelatedURL(removeDuplicateValues(links)), err
 }
 
-// //remove duplocate item from slice
-// func removeDuplicateValues(UrlSlice []string) []string {
-// 	keys := make(map[string]struct{})
-// 	list := []string{}
+//remove duplocate item from slice
+func removeDuplicateValues(UrlSlice []string) []string {
+	keys := make(map[string]struct{})
+	list := []string{}
 
-// 	for _, entry := range UrlSlice {
-// 		if _, ok := keys[entry]; !ok {
-// 			keys[entry] = struct{}{}
-// 			list = append(list, entry)
-// 		}
-// 	}
-// 	return list
-// }
+	for _, entry := range UrlSlice {
+		if _, ok := keys[entry]; !ok {
+			keys[entry] = struct{}{}
+			list = append(list, entry)
+		}
+	}
+	return list
+}
