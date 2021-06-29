@@ -1,10 +1,10 @@
 package main
 
 import (
-	"cache_service/crawler-service/recursive"
-	// "cache_service/crawler-service/search"
+	"cache_service/crawler-service/search"
 	"fmt"
-	// "log"
+
+	"github.com/sirupsen/logrus"
 )
 
 var name = "https://www.obeezi.com"
@@ -14,11 +14,10 @@ var name = "https://www.obeezi.com"
 // var name = "https://www.google.com/"
 
 func main() {
-	// links, err := search.Run(name, 0)
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// fmt.Println(links)
-	urls := recursive.GetUrl("https://www.obeezi.com", 3)
-	fmt.Println(urls)
+	links, err := search.Run(name)
+	if err != nil {
+		logrus.WithError(err).Fatalln(err)
+	}
+	fmt.Println(links)
+
 }
