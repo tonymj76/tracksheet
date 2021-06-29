@@ -13,10 +13,13 @@ var userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.
 
 // Run is the entry point of the app
 // input url = [url string | xml.gz file], depth = int
-func Run(url string, depth int) ([]string, error) {
+func Run(url string, depth ...interface{}) ([]string, error) {
 	url = strings.Trim(url, " ")
-	if depth > 1 {
-		return handler.GetUrl(url, depth)
+	if depth != nil {
+		dp := depth[0].(int)
+		if dp > 1 {
+			return handler.GetUrl(url, dp)
+		}
 	}
 	conf := handler.NewConnect(logrus.New(), url, accept, userAgent)
 	return Match(conf)
