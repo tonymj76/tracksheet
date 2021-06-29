@@ -171,7 +171,7 @@ func RelatedURL(urls []string) (duplicateURL []string) {
 	for x := 0; x < len(paths); x++ {
 		if !check(paths[x], occurencePaths) {
 			occurence := 0
-			for y := 0; y < len(paths); y++ {
+			for y := x; y < len(paths); y++ {
 				if compareDuplicate(paths[x], paths[y]) {
 					occurence++
 				}
