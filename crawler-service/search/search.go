@@ -13,6 +13,7 @@ var userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.
 
 // Run is the entry point of the app
 // input url = [url string | xml.gz file], depth = int
+// depth MaxDept limits the recursion depth of visited URLs.
 func Run(url string, depth ...interface{}) ([]string, error) {
 	url = strings.Trim(url, " ")
 	if depth != nil {
