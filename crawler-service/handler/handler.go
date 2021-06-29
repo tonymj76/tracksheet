@@ -65,6 +65,8 @@ func (c *Connection) Search() ([]string, error) {
 		}
 		result := parseSiteMapURL(string(byteReader), parseURL.Hostname())
 		return result, nil
+	} else {
+		log.Fatal("Error: Inavlid url type. Consider addding a depth")
 	}
 
 	// normal urls and append robots to the url path
