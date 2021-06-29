@@ -40,10 +40,10 @@ func ExampleScrape() {
 	})
 	fmt.Println(len(urls))
 	result := GetUnique(urls, "/")
-	//	fmt.Println(result)
+	fmt.Println(result)
 	fmt.Println(len(result))
 }
 
-// func main() {
-// 	ExampleScrape()
-// }
+func main() {
+	ExampleScrape()
+}

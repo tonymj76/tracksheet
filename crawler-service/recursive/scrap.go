@@ -1,6 +1,8 @@
 package recursive
 
 import (
+	"fmt"
+	"log"
 	"net/url"
 
 	"github.com/gocolly/colly"
@@ -9,6 +11,13 @@ import (
 // GetUrl given the url and depth, recursively get all related url of the site
 func GetUrl(link string, depth int) []*url.URL {
 	links := []*url.URL{}
+	base, err := url.Parse(link)
+	if err != nil {
+		log.Fatal("Error parsing URL ", err)
+	}
+	//get base domain
+	base_domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
+
 	c := colly.NewCollector(
 		colly.MaxDepth(depth),
 	)
@@ -19,11 +28,20 @@ func GetUrl(link string, depth int) []*url.URL {
 	})
 
 	c.OnRequest(func(r *colly.Request) {
-		links = append(links, r.URL)
+		//resolve url:
+		//if item domain is not the same as base domain, link is unrelated. skip
+		item_domain := fmt.Sprintf("%s://%s", r.URL.Scheme, r.URL.Host)
+		if item_domain != base_domain {
+			//do nothing
+		} else {
+			links = append(links, r.URL)
+
+		}
 	})
 
 	c.Visit(link)
-	return removeDuplicateValues(links)
+	unique_url := removeDuplicateValues(links)
+	return unique_url
 }
 
 //remove duplocate item from slice

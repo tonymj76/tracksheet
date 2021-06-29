@@ -131,20 +131,23 @@ func GetUnique(strs []string, sep string) []string {
 	return trie.GetWords(sep)
 }
 
-func main() {
-	urls := []string{
-		"https://amazon.com/product/123333",
-		"https://amazon.com/product/456899",
-		"https://amazon.com/gp/5565565",
-		"https://amazon.com/gp/556556",
-		"https://amazon.com/gp/55655",
-		"https://amazon.com/gp/5565565/abc",
-		"https://amazon.com/gp/5565565/abc/ref=ab",
-	}
-	trie := PrefixTree()
+// func main() {
+// 	urls := []string{
+// 		"https://amazon.com/product/123333",
+// 		"https://amazon.com/product/456899",
+// 		"https://amazon.com/gp/5565565",
+// 		"https://amazon.com/gp/556556",
+// 		"https://amazon.com/gp/55655",
+// 		"https://amazon.com/gp/5565565/abc",
+// 		"https://amazon.com/gp/5565565/abc/ref=ab",
+// 	}
 
-	for _, url := range urls {
-		trie.Add(strings.Split(url, "/"))
-	}
-	fmt.Println(trie.GetWords("/"))
-}
+// 	trie := PrefixTree()
+
+// 	for _, url := range urls {
+// 		trie.Add(strings.Split(url, "/"))
+// 	}
+// 	fmt.Println(trie.GetWords("/"))
+// }
+
+//delimit substring by "/" and find highest occuring item. Use fuzzy match to match string slice against highest occuring item
