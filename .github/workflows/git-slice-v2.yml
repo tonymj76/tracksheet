@@ -33,15 +33,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Git Slice Pull
         uses: GitStartHQ/actions/GitSlicePull@git-slice
         with:
           upstream_git_email: gitstart@users.noreply.github.com
           upstream_git_username: ${{ env.UPSTREAM_GIT_USERNAME }}
           upstream_git_token: ${{ env.UPSTREAM_GIT_TOKEN }}
-          slice_git_token: ${{ secrets.GITHUB_TOKEN }}
-          slice_git_username: ${{ env.SLICE_GIT_USERNAME }}
           slice_default_branch: ${{ env.GIT_SLICE_DEFAULT_BRANCH }}
   gitslice-push:
     needs: gitslice-pull
@@ -51,6 +49,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
         with:
+          token: ${{ secrets.GITSLICE_TOKEN }}
           fetch-depth: 0
 
       - name: Setup Git
@@ -72,13 +71,11 @@ jobs:
       - name: Git Slice Push
         uses: GitStartHQ/actions/GitSlicePush@git-slice
         with:
-          slice_git_token: ${{ secrets.GITHUB_TOKEN }}
-          slice_git_username: ${{ env.SLICE_GIT_USERNAME }}
           upstream_git_email: gitstart@users.noreply.github.com
           upstream_git_username: ${{ env.UPSTREAM_GIT_USERNAME }}
           upstream_git_token: ${{ env.UPSTREAM_GIT_TOKEN }}
+          slice_default_branch: ${{ env.GIT_SLICE_DEFAULT_BRANCH }}
           custom_commit_message: ${{ github.event.inputs.commitMessage }}
           slice_branch_to_push: ${{ github.event.inputs.branch }}
-          slice_default_branch: ${{ env.GIT_SLICE_DEFAULT_BRANCH }}
           push_pr: ${{ github.event.inputs.pushPr }}
           overide_previous_push: ${{ github.event.inputs.overide }}
