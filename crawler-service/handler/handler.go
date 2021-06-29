@@ -157,7 +157,8 @@ func goClient(urlPath string, c *Connection) (*http.Response, error) {
 	return resp, err
 }
 
-// RelatedURL returns similar product URL
+// RelatedURL returns similar product URL base on it probability of
+// it to occur
 func RelatedURL(urls []string) (duplicateURL []string) {
 	paths := []string{}
 	occurencePaths := []string{}
