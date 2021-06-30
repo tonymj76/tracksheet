@@ -14,14 +14,14 @@ type (
 	URLModel struct {
 		gorm.Model
 		Name        string
-		ProductURLs []URLProductLink
+		ProductURLs []string
 	}
 
-	URLProductLink struct {
-		gorm.Model
-		ProductURL string
-		URLModel   uint
-	}
+	// URLProductLink struct {
+	// 	gorm.Model
+	// 	ProductURL string
+	// 	URLModel   uint
+	// }
 )
 
 // CreateDBConnection sets up the database to be used
@@ -33,6 +33,6 @@ func CreateDBConnection(host, port, user, dbname, password, sslmode string) (*go
 	if err != nil {
 		logrus.WithError(err).Fatalln("failed to initiate the db")
 	}
-	err = db.AutoMigrate(&URLModel{}, &URLProductLink{})
+	err = db.AutoMigrate(&URLModel{})
 	return db, err
 }
