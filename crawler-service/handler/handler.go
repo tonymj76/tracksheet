@@ -17,14 +17,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//Connection connect http request and logger
+// Connection connect http request and logger
 type Connection struct {
 	Logger                     *logrus.Logger
 	Response                   *http.Response
 	urlLink, accept, userAgent string
 }
 
-var robotURL = "%s://%s/robots.txt"
+const robotURL = "%s://%s/robots.txt"
 
 func recoverMe() {
 	if err := recover(); err != nil {
@@ -83,7 +83,7 @@ func (c *Connection) Search() ([]string, error) {
 	return result, err
 }
 
-//getSiteMapURL retrieve the xml sitemap
+// getSiteMapURL retrieve the xml sitemap
 func getSiteMapURL(matchString string) (value string) {
 	//regex here map a url with a space or no space but must end with .xml
 	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.xml$)|(?P<path2>[^\s]*\.xml\s+$)`)
