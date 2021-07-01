@@ -15,7 +15,7 @@ func Run(url, user_agent, accept string, depth ...interface{}) ([]string, error)
 	url = strings.Trim(url, " ")
 	if depth != nil {
 		dp := depth[0].(int)
-		if dp > 1 {
+		if dp >= 1 {
 			return handler.GetUrl(url, dp)
 		}
 	}
