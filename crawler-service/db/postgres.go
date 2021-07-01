@@ -1,7 +1,7 @@
 package db
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
@@ -14,25 +14,26 @@ type (
 	URLModel struct {
 		gorm.Model
 		Name        string
-		ProductURLs []string
+		ProductURLs URLProductLinks
 	}
 
-	// URLProductLink struct {
-	// 	gorm.Model
-	// 	ProductURL string
-	// 	URLModel   uint
-	// }
+	URLProductLink struct {
+		gorm.Model
+		ProductURL string
+		URLModel   uint
+	}
 )
+type URLProductLinks []URLProductLink
 
 // CreateDBConnection sets up the database to be used
 // the config details can be gotten from .env file
-func CreateDBConnection(host, port, user, dbname, password, sslmode string) (*gorm.DB, error) {
-	const format = "postgres://%s:%s@%s:%s/%s?sslmode=%s"
-	uri := fmt.Sprintf(format, user, password, host, port, dbname, sslmode)
+func CreateDBConnection() (*gorm.DB, error) {
+	uri := os.Getenv("DATABASE_URI")
+	// uri := "postgres://postgres:postgres@localhost:5432/cuvva_merchant?sslmode=disable"
 	db, err := gorm.Open(postgres.Open(uri), &gorm.Config{Logger: logger.Discard})
 	if err != nil {
 		logrus.WithError(err).Fatalln("failed to initiate the db")
 	}
-	err = db.AutoMigrate(&URLModel{})
+	err = db.AutoMigrate(&URLModel{}, &URLProductLink{})
 	return db, err
 }
