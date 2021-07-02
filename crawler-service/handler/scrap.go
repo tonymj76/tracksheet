@@ -9,7 +9,7 @@ import (
 )
 
 // GetUrl given the url and depth, recursively get all related url of the site
-func GetUrl(link string, depth int) ([]string, error) {
+func GetUrl(link, user_agent string, depth int) ([]string, error) {
 	links := []string{}
 	base, err := url.Parse(link)
 	if err != nil {
@@ -21,6 +21,7 @@ func GetUrl(link string, depth int) ([]string, error) {
 	c := colly.NewCollector(
 		colly.MaxDepth(depth),
 	)
+	c.UserAgent = user_agent
 
 	// Find and visit all links
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
@@ -28,8 +29,7 @@ func GetUrl(link string, depth int) ([]string, error) {
 	})
 
 	c.OnRequest(func(r *colly.Request) {
-		//resolve url:
-		//if item domain is not the same as base domain, link is unrelated. skip
+		//resolve url if item domain is not the same as base domain, link is unrelated. skip
 		item_domain := fmt.Sprintf("%s://%s", r.URL.Scheme, r.URL.Host)
 		if item_domain != base_domain {
 			//do nothing
