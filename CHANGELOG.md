@@ -9,3 +9,11 @@ All notable changes in this project are added to this file
 ### Changed
 
 ### Removed
+
+[2021-07-02]
+### Added
+-[] Added db and more endpoints to access db data
+
+### Changed
+
+### Removed

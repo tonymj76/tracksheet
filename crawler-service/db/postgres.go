@@ -2,6 +2,9 @@ package db
 
 import (
 	"os"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
@@ -23,7 +26,6 @@ type (
 		URLModel   URLModel
 	}
 )
-type URLProductLinks []URLProductLink
 
 var DB *gorm.DB
 
@@ -42,4 +44,24 @@ func CreateDBConnection() {
 
 	}
 	DB = db
+}
+
+func Paginate(r *gin.Context) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		page, _ := strconv.Atoi(r.DefaultQuery("page", "0"))
+		if page == 0 {
+			page = 1
+		}
+
+		pageSize, _ := strconv.Atoi(r.DefaultQuery("limit", "100"))
+		switch {
+		case pageSize > 100:
+			pageSize = 100
+		case pageSize <= 0:
+			pageSize = 10
+		}
+
+		offset := (page - 1) * pageSize
+		return db.Offset(offset).Limit(pageSize)
+	}
 }

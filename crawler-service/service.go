@@ -20,6 +20,12 @@ func main() {
 	db.CreateDBConnection()
 	//rest api config
 	r := gin.Default()
-	r.GET("/crawler", controller.CrawlerGetController)
+
+	r.GET("/crawler/scrap", controller.CrawlerGetController)
+	r.GET("/crawler/url", controller.GetUrlModel)
+	r.GET("/crawler/product", controller.GetProductUrl)
+	r.GET("/crawler/productdelete", controller.DeleteProductUrl)
+	r.GET("/crawler/urldelete", controller.DeleteUrlDetails)
+
 	r.Run(":3001")
 }
