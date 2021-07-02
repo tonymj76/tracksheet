@@ -11,15 +11,6 @@ import (
 // Run is the entry point of the app
 // input url = [url string | xml.gz file], depth = int
 // depth MaxDept limits the recursion depth of visited URLs.
-var (
-	host     string
-	port     string
-	user     string
-	dbname   string
-	password string
-	sslmode  = "disable"
-)
-
 func Run(url, user_agent, accept string, depth ...interface{}) ([]string, error) {
 	url = strings.Trim(url, " ")
 	productLinks := []string{}
@@ -33,12 +24,18 @@ func Run(url, user_agent, accept string, depth ...interface{}) ([]string, error)
 
 	}
 
-	database, err := db.CreateDBConnection(host, port, user, dbname, password, sslmode)
+	database, err := db.CreateDBConnection()
 
 	if err != nil {
 		logrus.WithError(err).Fatalln("failed to initiate the db")
 	}
 
-	err = database.Create(db.URLModel{Name: url, ProductURLs: productLinks}).Error
+	if len(productLinks) > 0 {
+		urlLinks := db.URLProductLinks{}
+		for _, link := range productLinks {
+			urlLinks = append(urlLinks, db.URLProductLink{ProductURL: link})
+		}
+		err = database.Create(db.URLModel{Name: url, ProductURLs: urlLinks}).Error
+	}
 	return productLinks, err
 }
