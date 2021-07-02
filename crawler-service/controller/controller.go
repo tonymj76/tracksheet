@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"cache_service/crawler-service/db"
 	"cache_service/crawler-service/search"
+
 	"log"
 	"net/http"
 	"strconv"
@@ -33,5 +35,12 @@ func CrawlerGetController(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": "false", "error": err})
 	} else {
 		c.JSON(http.StatusOK, gin.H{"success": "true", "links": links})
+		//after responsing with json, run db update in the background
+		url_model := db.URLModel{Name: link}
+		db.DB.Create(&url_model)
+		for _, value := range links {
+			link_model := db.URLProductLink{ProductURL: value, URLModelID: url_model.ID}
+			db.DB.Create(&link_model)
+		}
 	}
 }

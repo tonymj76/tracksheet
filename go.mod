@@ -9,6 +9,7 @@ require (
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/headzoo/surf v1.0.0 // indirect
 	github.com/headzoo/ut v0.0.0-20181013193318-a13b5a7a02ca // indirect
+	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.6.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
