@@ -14,14 +14,14 @@ type (
 	URLModel struct {
 		gorm.Model
 		Name        string
-		ProductURLs []string
+		ProductURLs []URLProductLink
 	}
 
-	// URLProductLink struct {
-	// 	gorm.Model
-	// 	ProductURL string
-	// 	URLModel   uint
-	// }
+	URLProductLink struct {
+		gorm.Model
+		ProductURL string
+		URLModel   uint
+	}
 )
 
 // CreateDBConnection sets up the database to be used

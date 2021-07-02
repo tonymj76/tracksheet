@@ -14,6 +14,6 @@ require (
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
 	gopkg.in/headzoo/surf.v1 v1.0.0
-	gorm.io/driver/postgres v1.1.0 // indirect
-	gorm.io/gorm v1.21.11 // indirect
+	gorm.io/driver/postgres v1.1.0
+	gorm.io/gorm v1.21.11
 )
