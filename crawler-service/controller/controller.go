@@ -41,7 +41,7 @@ func CrawlerGetController(c *gin.Context) {
 		url_model := db.URLModel{Name: link}
 		db.DB.Create(&url_model)
 		for _, value := range links {
-			link_model := db.URLProductLink{ProductURL: value, URLModelID: url_model.ID}
+			link_model := db.URLProductLink{ProductURL: value, URLModelID: url_model.ID, URLModel: url_model}
 			db.DB.Create(&link_model)
 		}
 
@@ -79,7 +79,7 @@ func GetProductUrl(c *gin.Context) {
 
 	c.JSON(http.StatusOK,
 		gin.H{
-			"success": "true",
+			"success": true,
 			"url":     url_detail,
 			"product": product_url,
 			"total":   count,
@@ -124,4 +124,41 @@ func DeleteProductUrl(c *gin.Context) {
 	}
 	db.DB.Delete(&product_url)
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "item deleted successfully"})
+}
+
+func SeachUrl(c *gin.Context) {
+	var url_detail []db.URLModel
+	k := c.Query("k")
+	var count int64
+	if k == "" {
+		fmt.Println("Please provide a search string")
+		return
+	}
+	search := fmt.Sprintf("%%%s%%", k)
+	db.DB.Scopes(db.Paginate(c)).Where("name LIKE ?", search).Find(&url_detail).Count(&count)
+
+	c.JSON(http.StatusOK,
+		gin.H{
+			"success": true,
+			"url":     url_detail,
+			"total":   count,
+		})
+}
+
+func SearchProduct(c *gin.Context) {
+	var product_url []db.URLProductLink
+	var count int64
+	k := c.Query("k")
+	if k == "" {
+		fmt.Println("Please provide a search string")
+		return
+	}
+	search := fmt.Sprintf("%%%s%%", k)
+	db.DB.Scopes(db.Paginate(c)).Where("product_url LIKE ?", search).Find(&product_url).Count(&count)
+	c.JSON(http.StatusOK,
+		gin.H{
+			"success": true,
+			"product": product_url,
+			"total":   count,
+		})
 }

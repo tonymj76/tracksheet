@@ -26,6 +26,8 @@ func main() {
 	r.GET("/crawler/product", controller.GetProductUrl)
 	r.GET("/crawler/productdelete", controller.DeleteProductUrl)
 	r.GET("/crawler/urldelete", controller.DeleteUrlDetails)
+	r.GET("/crawler/searchurl", controller.SeachUrl)
+	r.GET("/crawler/searchproduct", controller.SearchProduct)
 
 	r.Run(":3001")
 }
