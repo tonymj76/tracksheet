@@ -31,11 +31,11 @@ func CrawlerGetController(c *gin.Context) {
 		return
 	}
 
-	links, err := search.Run(link, user_agent, accept, depth_val)
-	if err != nil {
+	links := search.Run(link, user_agent, accept, depth_val)
+	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": err})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links})
+		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List})
 		//after responsing with json, run db update in the background
 		urlModel := db.URLModel{Name: link}
 		items := &db.RedisServerContext{URL: &urlModel, ProductList: links}

@@ -8,8 +8,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type ReturnList struct {
+	List  []string
+	Key   string
+	Error error
+}
+
 // GetUrl given the url and depth, recursively get all related url of the site
-func GetUrl(link, user_agent string, depth int) ([]string, error) {
+func GetUrl(link, accept, user_agent string, depth int) ReturnList {
 	links := []string{}
 	base, err := url.Parse(link)
 	if err != nil {
@@ -39,7 +45,12 @@ func GetUrl(link, user_agent string, depth int) ([]string, error) {
 	})
 
 	err = c.Visit(link)
-	return RelatedURL(removeDuplicateValues(links)), err
+	list, key := Builder(removeDuplicateValues(links), accept, user_agent)
+	return ReturnList{
+		List:  list,
+		Key:   key,
+		Error: err,
+	}
 }
 
 //remove duplocate item from slice
