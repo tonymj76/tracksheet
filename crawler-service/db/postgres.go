@@ -23,14 +23,14 @@ type (
 		gorm.Model
 		ProductURL string
 		URLModelID uint
-		URLModel   URLModel
+		URLModel   *URLModel
 	}
 
 	PathMap struct {
 		gorm.Model
 		PathField  string
 		URLModelID uint
-		URLModel   URLModel
+		URLModel   *URLModel
 	}
 )
 

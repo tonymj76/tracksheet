@@ -40,13 +40,12 @@ func CrawlerGetController(c *gin.Context) {
 		//todo: make this run as a background job
 		url_model := db.URLModel{Name: link}
 		db.DB.Create(&url_model)
-		fmt.Println(links.Key)
 		if links.Key != "" {
-			path_model := db.PathMap{PathField: links.Key, URLModelID: url_model.ID, URLModel: url_model}
+			path_model := db.PathMap{PathField: links.Key, URLModelID: url_model.ID, URLModel: &url_model}
 			db.DB.Create(&path_model)
 		}
 		for _, value := range links.List {
-			link_model := db.URLProductLink{ProductURL: value, URLModelID: url_model.ID, URLModel: url_model}
+			link_model := db.URLProductLink{ProductURL: value, URLModelID: url_model.ID, URLModel: &url_model}
 			db.DB.Create(&link_model)
 		}
 
@@ -61,6 +60,14 @@ func GetUrlModel(c *gin.Context) {
 	db.DB.Scopes(db.Paginate(c)).Find(&urls).Count(&count)
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "url": urls, "total": count})
+
+}
+
+func GetPaths(c *gin.Context) {
+	var paths []db.PathMap
+	var count int64
+	db.DB.Scopes(db.Paginate(c)).Find(&paths).Count(&count)
+	c.JSON(http.StatusOK, gin.H{"success": true, "path": paths, "total": count})
 
 }
 
