@@ -1,6 +1,7 @@
 package db
 
 import (
+	"cache_service/crawler-service/handler"
 	"fmt"
 
 	"github.com/gocraft/work"
@@ -10,7 +11,7 @@ import (
 // RedisServer create a custom settings for redis
 type RedisServerContext struct {
 	URL         *URLModel
-	ProductList []string
+	ProductList handler.ReturnList
 }
 
 var Pool *work.WorkerPool
@@ -28,9 +29,13 @@ func NewRedisPool(maxActive, maxIdle int, wait bool, port string) *redis.Pool {
 
 func (r *RedisServerContext) SaveToDB(job *work.Job) error {
 	err := DB.Create(r.URL).Error
-	for _, value := range r.ProductList {
-		link_model := URLProductLink{ProductURL: value, URLModelID: r.URL.ID, URLModel: *r.URL}
-		err = DB.Create(&link_model).Error
+	if r.ProductList.Key != "" {
+		pathModel := PathMap{PathField: r.ProductList.Key, URLModelID: r.URL.ID, URLModel: *r.URL}
+		err = DB.Create(&pathModel).Error
+	}
+	for _, value := range r.ProductList.List {
+		linkModel := URLProductLink{ProductURL: value, URLModelID: r.URL.ID, URLModel: *r.URL}
+		err = DB.Create(&linkModel).Error
 	}
 	return err
 }
