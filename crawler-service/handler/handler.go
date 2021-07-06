@@ -43,7 +43,7 @@ func NewConnect(logger *logrus.Logger, urlPath, accept, userAgent string) *Conne
 }
 
 // Search url and return result
-func (c *Connection) Search() ([]string, error) {
+func (c *Connection) Search() ReturnList {
 	parseURL, err := url.Parse(c.urlLink)
 	if err != nil {
 		c.Logger.WithError(err).Fatalln("make sure you entered a valid URL ")
@@ -51,7 +51,7 @@ func (c *Connection) Search() ([]string, error) {
 	defer recoverMe()
 	// check if the url is a xml.gz file
 	if filepath.Ext(c.urlLink) == ".gz" {
-		resp, err := goClient(c.urlLink, c)
+		resp, err := GoClient(c.urlLink, c)
 		if err != nil {
 			c.Logger.WithError(err).Fatalln("failed to make request to the server")
 		}
@@ -64,11 +64,15 @@ func (c *Connection) Search() ([]string, error) {
 			c.Logger.WithError(err).Fatalln("failed to read byte")
 		}
 		result := parseSiteMapURL(string(byteReader), parseURL.Hostname())
-		return result, nil
+		return ReturnList{
+			List:  result,
+			Key:   "",
+			Error: nil,
+		}
 	}
 
 	// normal urls and append robots to the url path
-	resp, err := goClient(fmt.Sprintf(robotURL, parseURL.Scheme, parseURL.Hostname()), c)
+	resp, err := GoClient(fmt.Sprintf(robotURL, parseURL.Scheme, parseURL.Hostname()), c)
 	if err != nil {
 		c.Logger.WithError(err).Fatalln("failed to get response")
 	}
@@ -78,7 +82,11 @@ func (c *Connection) Search() ([]string, error) {
 	}
 	siteMap := getSiteMapURL(string(byteReader))
 	result, err := c.retrieve(siteMap, parseURL.Hostname())
-	return result, err
+	return ReturnList{
+		List:  result,
+		Key:   "",
+		Error: err,
+	}
 }
 
 // getSiteMapURL retrieve the xml sitemap
@@ -120,7 +128,7 @@ func parseSiteMapURL(matchString, host string) (validLink []string) {
 
 // retrieve performs a HTTP Get request for the sitemap xml and decodes the results
 func (c *Connection) retrieve(siteMap, host string) ([]string, error) {
-	resp, err := goClient(siteMap, c)
+	resp, err := GoClient(siteMap, c)
 	if err != nil {
 		c.Logger.WithError(err).Fatalln("failed to get response")
 	}
@@ -132,7 +140,7 @@ func (c *Connection) retrieve(siteMap, host string) ([]string, error) {
 }
 
 // goClient to make http request and set brower header
-func goClient(urlPath string, c *Connection) (*http.Response, error) {
+func GoClient(urlPath string, c *Connection) (*http.Response, error) {
 	var (
 		client http.Client
 	)

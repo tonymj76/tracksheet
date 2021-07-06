@@ -31,16 +31,21 @@ func CrawlerGetController(c *gin.Context) {
 		return
 	}
 
-	links, err := search.Run(link, user_agent, accept, depth_val)
-	if err != nil {
+	links := search.Run(link, user_agent, accept, depth_val)
+	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": err})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links})
+		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List})
 		//after responsing with json, run db update in the background
 		//todo: make this run as a background job
 		url_model := db.URLModel{Name: link}
 		db.DB.Create(&url_model)
-		for _, value := range links {
+		fmt.Println(links.Key)
+		if links.Key != "" {
+			path_model := db.PathMap{PathField: links.Key, URLModelID: url_model.ID, URLModel: url_model}
+			db.DB.Create(&path_model)
+		}
+		for _, value := range links.List {
 			link_model := db.URLProductLink{ProductURL: value, URLModelID: url_model.ID, URLModel: url_model}
 			db.DB.Create(&link_model)
 		}
