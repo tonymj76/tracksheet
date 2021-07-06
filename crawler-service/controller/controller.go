@@ -37,14 +37,9 @@ func CrawlerGetController(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, gin.H{"success": true, "links": links})
 		//after responsing with json, run db update in the background
-		//todo: make this run as a background job
-		url_model := db.URLModel{Name: link}
-		db.DB.Create(&url_model)
-		for _, value := range links {
-			link_model := db.URLProductLink{ProductURL: value, URLModelID: url_model.ID, URLModel: url_model}
-			db.DB.Create(&link_model)
-		}
-
+		urlModel := db.URLModel{Name: link}
+		items := &db.RedisServerContext{URL: &urlModel, ProductList: links}
+		db.Pool.Job("save_urls", (*items).SaveToDB)
 	}
 }
 
@@ -89,8 +84,6 @@ func GetProductUrl(c *gin.Context) {
 
 func DeleteUrlDetails(c *gin.Context) {
 	var url_detail db.URLModel
-	var product_url db.URLProductLink
-
 	url := c.Query("link")
 	if url == "" {
 		fmt.Println("Please provide a url in query")
@@ -101,11 +94,8 @@ func DeleteUrlDetails(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
 		return
 	}
-	//todo: make delete  run as a background job
-
-	db.DB.Where("url_model_id = ?", url_detail.ID).Delete(&product_url)
-	db.DB.Delete(&url_detail)
-
+	items := &db.RedisServerContext{URL: &url_detail}
+	db.Pool.Job("remove_url_id", (*items).DeleteID)
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "item deleted successfully"})
 }
 
@@ -122,6 +112,7 @@ func DeleteProductUrl(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
 		return
 	}
+
 	db.DB.Delete(&product_url)
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "item deleted successfully"})
 }
