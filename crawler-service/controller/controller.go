@@ -39,7 +39,7 @@ func CrawlerGetController(c *gin.Context) {
 		//after responsing with json, run db update in the background
 		urlModel := db.URLModel{Name: link}
 		items := &db.RedisServerContext{URL: &urlModel, ProductList: links}
-		db.Pool.Job("save_urls", (*items).SaveToDB)
+		db.SaveToDB(items)
 	}
 }
 
@@ -102,9 +102,10 @@ func DeleteUrlDetails(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
 		return
 	}
-	items := &db.RedisServerContext{URL: &url_detail}
-	db.Pool.Job("remove_url_id", (*items).DeleteID)
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "item deleted successfully"})
+
+	items := &db.RedisServerContext{URL: &url_detail}
+	db.DeleteID(items)
 }
 
 func DeleteProductUrl(c *gin.Context) {

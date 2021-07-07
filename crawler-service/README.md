@@ -1,6 +1,10 @@
 # crawling-service
 
--[] Create a .env in the crawler-service dir. The content of the file should be `DATABASE_URI = your_postgresurl`
+-[] Create a .env in the crawler-service dir. The content of the file should be 
+
+```
+DATABASE_URI = your_postgres_url
+```
 
 ### Accessing end points
 

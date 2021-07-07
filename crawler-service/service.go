@@ -5,8 +5,6 @@ import (
 	"cache_service/crawler-service/db"
 	"log"
 
-	"github.com/gocraft/work"
-
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -17,11 +15,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file ", err)
 	}
-	redisPool := db.NewRedisPool(5, 5, true, "6379")
-	db.Pool = work.NewWorkerPool(db.RedisServerContext{}, 10, "my_app", redisPool)
-	// Start processing jobs
-	db.Pool.Start()
-	//create db connection
 	db.CreateDBConnection()
 	//rest api config
 	r := gin.Default()
