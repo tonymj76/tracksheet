@@ -8,12 +8,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-var userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11"
-
 // Run is the entry point of the app
-func Run(url string) ([]string, error) {
+// input url = [url string | xml.gz file], depth = int
+// depth MaxDept limits the recursion depth of visited URLs.
+func Run(url, user_agent, accept string, depth ...interface{}) handler.ReturnList {
 	url = strings.Trim(url, " ")
-	conf := handler.NewConnect(logrus.New(), url, accept, userAgent)
+	if depth != nil {
+		dp := depth[0].(int)
+		if dp >= 1 {
+			a := handler.GetUrl(url, accept, user_agent, dp)
+			return a
+		}
+	}
+	conf := handler.NewConnect(logrus.New(), url, accept, user_agent)
 	return Match(conf)
 }

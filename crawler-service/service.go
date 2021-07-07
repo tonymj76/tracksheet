@@ -1,24 +1,36 @@
 package main
 
 import (
-	// "cache_service/crawler-service/recursive"
-	"cache_service/crawler-service/search"
-	"fmt"
+	"cache_service/crawler-service/controller"
+	"cache_service/crawler-service/db"
 	"log"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
-var name = "https://www.obeezi.com"
-
-// var name = " https://www.amazon.com/sitemaps.2307ea63773dfee.sitemap_detail_us_txt_9_2_41_20.xml.gz"
-
-// var name = "https://www.google.com/"
-
 func main() {
-	// data := recursive.GetUrl(name, 2)
-	// fmt.Println(data)
-	links, err := search.Run(name)
+	//load env var
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal("Error loading .env file ", err)
 	}
-	fmt.Println(links)
+	db.CreateDBConnection()
+	//rest api config
+	r := gin.Default()
+
+	crawler := r.Group("/crawler")
+
+	{
+		crawler.GET("/scrap", controller.CrawlerGetController)
+		crawler.GET("/url", controller.GetUrlModel)
+		crawler.GET("/product", controller.GetProductUrl)
+		crawler.GET("/productdelete", controller.DeleteProductUrl)
+		crawler.GET("/urldelete", controller.DeleteUrlDetails)
+		crawler.GET("/searchurl", controller.SeachUrl)
+		crawler.GET("/searchproduct", controller.SearchProduct)
+		crawler.GET("/getpaths", controller.GetPaths)
+	}
+
+	r.Run(":3001")
 }

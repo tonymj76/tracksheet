@@ -2,22 +2,22 @@ package main // utils
 
 import (
 	"fmt"
-	"strings"
 	"reflect"
+	"strings"
 )
 
 type TrieNode struct {
-	key string
+	key            string
 	numOfOccurence int
-	children map[string] *TrieNode
-	isWord bool
-	numOfWords int
+	children       map[string]*TrieNode
+	isWord         bool
+	numOfWords     int
 }
 
-type TrieChildren map[string] *TrieNode;
+type TrieChildren map[string]*TrieNode
 
 func newNode(key string) *TrieNode {
-	return &TrieNode{ key: key, children: map[string] *TrieNode{} }
+	return &TrieNode{key: key, children: map[string]*TrieNode{}}
 }
 
 func PrefixTree() *TrieNode {
@@ -27,19 +27,23 @@ func PrefixTree() *TrieNode {
 func (trie *TrieNode) Add(values []string) {
 	trie.numOfOccurence += 1
 
+	//if no spereator, set word value to true
 	if len(values) == 0 {
 		trie.isWord = true
 		return
 	}
 
+	//get parent and subsequent child words
 	value, values := values[0], values[1:]
 
+	//if parent key word exist, append children words to it
 	if trie.key == value {
 		trie.Add(values)
 
 		return
 	}
 
+	//append children to parent node if it does not exist
 	if _, ok := trie.children[value]; !ok {
 		trie.children[value] = newNode(value)
 	}
@@ -47,7 +51,7 @@ func (trie *TrieNode) Add(values []string) {
 	trie.children[value].Add(values)
 }
 
-func merge(m1, m2 map[string] *TrieNode) map[string] *TrieNode {
+func merge(m1, m2 map[string]*TrieNode) map[string]*TrieNode {
 	for m, v := range m2 {
 		m1[m] = v
 	}
@@ -59,19 +63,18 @@ func (trie *TrieNode) Paternify() {
 	common := []*TrieNode{}
 
 	for _, current := range trie.children {
-		if trie.key == "gp" {
-		}
+		//if node has an occurance of 1 or less, append to the common slice
 		if current.numOfOccurence <= 1 {
 			common = append(common, current)
 		}
 	}
 
 	if len(common) > 1 {
+		//pick the first item from the common as key
 		pattern := newNode(common[0].key)
 
 		for _, node := range common {
 			pattern.numOfOccurence += 1
-
 			pattern.children = merge(pattern.children, node.children)
 
 			pattern.numOfWords += 1
@@ -89,15 +92,15 @@ func (trie *TrieNode) Paternify() {
 	}
 }
 
+//get words after transversing the tree
 func (trie *TrieNode) getWords(words []string, word string, sep string) []string {
 	if trie.isWord {
 		words = append(words, word)
 	}
 
 	for _, c := range trie.children {
-		words = c.getWords(words, word + c.key + sep, sep)
+		words = c.getWords(words, word+c.key+sep, sep)
 	}
-
 	return words
 }
 
@@ -110,7 +113,7 @@ func (trie *TrieNode) String() string {
 	children := reflect.ValueOf(trie.children).MapKeys()
 	fmt.Println(trie.key, children, trie.numOfOccurence, trie.isWord)
 	for _, t := range trie.children {
-		t.String();
+		t.String()
 	}
 
 	return ""
@@ -119,29 +122,32 @@ func (trie *TrieNode) String() string {
 func GetUnique(strs []string, sep string) []string {
 	fmt.Println(len(strs))
 
-		trie := PrefixTree()
+	trie := PrefixTree()
 
-		for _, str := range strs {
-			trie.Add(strings.Split(str, sep))
-		}
+	for _, str := range strs {
+		trie.Add(strings.Split(str, sep))
+	}
 
 	return trie.GetWords(sep)
 }
+
 // func main() {
 // 	urls := []string{
-	// "https://amazon.com/product/123333", 
-	// "https://amazon.com/product/456899", 
-	// "https://amazon.com/gp/5565565", 
-	// "https://amazon.com/gp/556556", 
-	// "https://amazon.com/gp/55655", 
-	// "https://amazon.com/gp/5565565/abc", 
-	// "https://amazon.com/gp/5565565/abc/ref=ab"}
+// 		"https://amazon.com/product/123333",
+// 		"https://amazon.com/product/456899",
+// 		"https://amazon.com/gp/5565565",
+// 		"https://amazon.com/gp/556556",
+// 		"https://amazon.com/gp/55655",
+// 		"https://amazon.com/gp/5565565/abc",
+// 		"https://amazon.com/gp/5565565/abc/ref=ab",
+// 	}
+
 // 	trie := PrefixTree()
 
 // 	for _, url := range urls {
 // 		trie.Add(strings.Split(url, "/"))
 // 	}
-
 // 	fmt.Println(trie.GetWords("/"))
 // }
 
+//delimit substring by "/" and find highest occuring item. Use fuzzy match to match string slice against highest occuring item
