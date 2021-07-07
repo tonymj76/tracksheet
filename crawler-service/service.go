@@ -19,14 +19,18 @@ func main() {
 	//rest api config
 	r := gin.Default()
 
-	r.GET("/crawler/scrap", controller.CrawlerGetController)
-	r.GET("/crawler/url", controller.GetUrlModel)
-	r.GET("/crawler/product", controller.GetProductUrl)
-	r.GET("/crawler/productdelete", controller.DeleteProductUrl)
-	r.GET("/crawler/urldelete", controller.DeleteUrlDetails)
-	r.GET("/crawler/searchurl", controller.SeachUrl)
-	r.GET("/crawler/searchproduct", controller.SearchProduct)
-	r.GET("/crawler/getpaths", controller.GetPaths)
+	crawler := r.Group("/crawler")
+
+	{
+		crawler.GET("/scrap", controller.CrawlerGetController)
+		crawler.GET("/url", controller.GetUrlModel)
+		crawler.GET("/product", controller.GetProductUrl)
+		crawler.GET("/productdelete", controller.DeleteProductUrl)
+		crawler.GET("/urldelete", controller.DeleteUrlDetails)
+		crawler.GET("/searchurl", controller.SeachUrl)
+		crawler.GET("/searchproduct", controller.SearchProduct)
+		crawler.GET("/getpaths", controller.GetPaths)
+	}
 
 	r.Run(":3001")
 }
