@@ -16,7 +16,9 @@ func SaveToDB(r *RedisServerContext) error {
 	var url_model URLModel
 	err := DB.Create(r.URL).Error
 	if err != nil {
-		DB.Where("name = ?", r.URL).First(&url_model)
+		if err := DB.Where("name = ?", r.URL).First(&url_model).Error; err != nil {
+			return err
+		}
 		if r.ProductList.Key != "" {
 			pathModel := PathMap{PathField: r.ProductList.Key, URLModelID: url_model.ID, URLModel: &url_model}
 			err = DB.Create(&pathModel).Error
