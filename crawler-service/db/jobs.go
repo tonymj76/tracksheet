@@ -14,13 +14,23 @@ type RedisServerContext struct {
 func SaveToDB(r *RedisServerContext) error {
 	fmt.Println("saving to db...")
 	err := DB.Create(r.URL).Error
+	if err != nil {
+		fmt.Println("error creating url data ", err)
+		return err
+	}
 	if r.ProductList.Key != "" {
 		pathModel := PathMap{PathField: r.ProductList.Key, URLModelID: r.URL.ID, URLModel: r.URL}
 		err = DB.Create(&pathModel).Error
+		if err != nil {
+			fmt.Println("error writing path map to db ", err)
+		}
 	}
 	for _, value := range r.ProductList.List {
-		linkModel := URLProductLink{ProductURL: value, URLModelID: r.URL.ID, URLModel: r.URL}
+		linkModel := URLProductLink{ProductURL: &value, URLModelID: r.URL.ID, URLModel: r.URL}
 		err = DB.Create(&linkModel).Error
+		if err != nil {
+			fmt.Println("error writing path map to db ", err)
+		}
 	}
 	return err
 }
