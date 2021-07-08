@@ -1,45 +1,62 @@
-# crawling-service
+# Crawling Service
 
--[] Create a .env in the crawler-service dir. The content of the file should be 
+- [Overview :notebook_with_decorative_cover:](#overview-notebook_with_decorative_cover)
+- [Setting up :gear:](#Setting-up-gear)
+- [Accessing end points](#Accessing-end-points)
 
-```
+## Overview :notebook_with_decorative_cover
+
+There is two search Engine implemented.
+
+- The 1st solution takes in the URL or zipped sitemap of the site to crawl. If a URL is provided, it will search the robots.txt file and get the XML sitemap which returns all the product links in the XML files, while if a zipped sitemap is provided it parse it and return the product links.
+- The 2nd solution usings recursive page depth to get all the links of the product URL.
+
+## Setting up :gear
+
+-[] Create a .env in the crawler-service dir. The content of the file should be
+eg `DATABASE_URI="postgres://postgres:postgres@localhost:5432/tracksheet?sslmode=disable"`
+
+```sh
 DATABASE_URI = your_postgres_url
 ```
 
 ### Accessing end points
 
 1. To access the crawl service access the end point GET `/crawler/scrap`, pass the following as queries
+
 * accept (ignore to use default)
-* user_aget (ignore to use daefult)
+* user_aget (ignore to use default)
 * link (link of site to crawl)
 * depth (use if using recursive depth search method); an int value. The more the depth, the more itemsretrieved
 
+2.To get all urls in DB GET `/crawler/url` pass the following queries
 
-2. To get all urls in DB GET `/crawler/url` pass the following queries
 * page (table page)
 *limit (table limit)
 This would return a list of all url items in the DB
 
+3.To get the product url details of a url GET `/crawler/product` pass the following queries
 
-3. To get the product url details of a url GET `/crawler/product` pass the following queries
 * page (table page)
 * limit (table limit)
 * link (url item which you want to get their product)
 
+4.To delete a product url GET `crawler/productdelete` pass the following queries
 
-4. To delete a product url GET `crawler/productdelete` pass the following queries
 * link (product link you want to delete)
 
+5.To delete a url item, and all related  GET `/crawler/urldelete` pass the following queries
 
-5. To delete a url item, and all related  GET `/crawler/urldelete` pass the following queries
 * link (url link to delete)
 
-5. To search for a url GET `/crawler/searchurl` pass the following queries
+6.To search for a url GET `/crawler/searchurl` pass the following queries
+
 * page (table page)
 * limit (table limit)
 * k (the search string)
 
-5. To search for a product GET `/crawler/searchproduct` pass the following queries
+7.To search for a product GET `/crawler/searchproduct` pass the following queries
+
 * page (table page)
 * limit (table limit)
 * k (the search string)

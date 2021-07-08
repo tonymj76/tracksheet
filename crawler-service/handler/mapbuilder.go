@@ -47,7 +47,6 @@ func Builder(urls []string, accept, user_agent string) ([]string, string) {
 							links = append(links, href)
 							m[class_details] = links
 						}
-
 					}
 				}
 			})
