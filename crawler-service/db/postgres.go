@@ -16,12 +16,12 @@ import (
 type (
 	URLModel struct {
 		gorm.Model
-		Name string
+		Name string `gorm:"unique;not null"`
 	}
 
 	URLProductLink struct {
 		gorm.Model
-		ProductURL string
+		ProductURL string `gorm:"unique;not null"`
 		URLModelID uint
 		URLModel   *URLModel
 	}
