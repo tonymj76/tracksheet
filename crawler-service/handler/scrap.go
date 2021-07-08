@@ -26,8 +26,11 @@ func GetUrl(link, accept, user_agent string, depth int) ReturnList {
 
 	c := colly.NewCollector(
 		colly.MaxDepth(depth),
+		colly.Async(true),
 	)
 	c.UserAgent = user_agent
+	// number of go routines.
+	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 6})
 
 	// Find and visit all links
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
@@ -45,6 +48,8 @@ func GetUrl(link, accept, user_agent string, depth int) ReturnList {
 	})
 
 	err = c.Visit(link)
+	c.Wait()
+	//group links
 	list, key := Builder(removeDuplicateValues(links), accept, user_agent)
 	resolved_list := resolveUrl(link, list)
 	return ReturnList{
