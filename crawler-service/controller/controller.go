@@ -37,7 +37,7 @@ func CrawlerGetController(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List})
 		//after responsing with json, run db update in the background
-		urlModel := db.URLModel{Name: link}
+		urlModel := db.URLModel{Name: &link}
 		items := &db.RedisServerContext{URL: &urlModel, ProductList: links}
 		db.SaveToDB(items)
 	}
