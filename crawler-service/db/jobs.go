@@ -13,25 +13,41 @@ type RedisServerContext struct {
 
 func SaveToDB(r *RedisServerContext) error {
 	fmt.Println("saving to db...")
+	var url_model URLModel
 	err := DB.Create(r.URL).Error
 	if err != nil {
-		fmt.Println("error creating url data ", err)
-		return err
-	}
-	if r.ProductList.Key != "" {
-		pathModel := PathMap{PathField: r.ProductList.Key, URLModelID: r.URL.ID, URLModel: r.URL}
-		err = DB.Create(&pathModel).Error
-		if err != nil {
-			fmt.Println("error writing path map to db ", err)
+		DB.Where("name = ?", r.URL).First(&url_model)
+		if r.ProductList.Key != "" {
+			pathModel := PathMap{PathField: r.ProductList.Key, URLModelID: url_model.ID, URLModel: &url_model}
+			err = DB.Create(&pathModel).Error
+			if err != nil {
+				fmt.Println("error writing path map to db ", err)
+			}
+		}
+		for _, value := range r.ProductList.List {
+			linkModel := URLProductLink{ProductURL: value, URLModelID: url_model.ID, URLModel: &url_model}
+			err = DB.Create(&linkModel).Error
+			if err != nil {
+				fmt.Println("error writing product link to db ", value, err)
+			}
+		}
+	} else {
+		if r.ProductList.Key != "" {
+			pathModel := PathMap{PathField: r.ProductList.Key, URLModelID: r.URL.ID, URLModel: r.URL}
+			err = DB.Create(&pathModel).Error
+			if err != nil {
+				fmt.Println("error writing path map to db ", err)
+			}
+		}
+		for _, value := range r.ProductList.List {
+			linkModel := URLProductLink{ProductURL: value, URLModelID: r.URL.ID, URLModel: r.URL}
+			err = DB.Create(&linkModel).Error
+			if err != nil {
+				fmt.Println("error writing product link to db ", value, err)
+			}
 		}
 	}
-	for _, value := range r.ProductList.List {
-		linkModel := URLProductLink{ProductURL: &value, URLModelID: r.URL.ID, URLModel: r.URL}
-		err = DB.Create(&linkModel).Error
-		if err != nil {
-			fmt.Println("error writing path map to db ", err)
-		}
-	}
+
 	return err
 }
 

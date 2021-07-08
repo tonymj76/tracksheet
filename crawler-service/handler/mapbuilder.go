@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"net/url"
+	// "net/url"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -14,32 +14,37 @@ func Builder(urls []string, accept, user_agent string) ([]string, string) {
 	m := make(map[string][]string)
 	return_slice := []string{}
 	return_key := ""
-
 	for _, val := range urls {
-		base, _ := url.Parse(val)
+		// if strings.Contains(val, "xml") || strings.Contains(val, "gz") || strings.Contains(val, "sitemap") {
+		// 	continue
+		// } else {
+		// base, _ := url.Parse(val)
 		res, err := GoClient(val, NewConnect(logrus.New(), val, accept, user_agent))
 		if err != nil {
 			fmt.Println("error getting response ", err)
+			continue
 		} else {
 			// parsse web page and get all links
+			fmt.Println("parsing ", val)
 			doc, err := goquery.NewDocumentFromReader(res.Body)
 			if err != nil {
 				fmt.Println("error parsing html ", err)
+				continue
 			}
 			//get all links in page and group
 			doc.Find("a").Each(func(i int, link *goquery.Selection) {
 				href, ok := link.Attr("href")
 				//resolve relative url to absolute url
-				u, _ := url.Parse(href)
+				//	u, _ := url.Parse(href)
 				if ok {
 					class, ok := link.ParentsUntil("~").Attr("class")
 					if ok {
 						class_details := strings.ReplaceAll(class, " ", ",")
 						if m[class_details] == nil {
-							m[class_details] = []string{base.ResolveReference(u).String()}
+							m[class_details] = []string{href}
 						} else {
 							links := m[class_details]
-							links = append(links, base.ResolveReference(u).String())
+							links = append(links, href)
 							m[class_details] = links
 						}
 
@@ -48,6 +53,7 @@ func Builder(urls []string, accept, user_agent string) ([]string, string) {
 			})
 
 		}
+		//	}
 	}
 	//return the group with the longest item
 	for key, value := range m {

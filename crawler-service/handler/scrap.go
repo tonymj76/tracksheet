@@ -46,15 +46,31 @@ func GetUrl(link, accept, user_agent string, depth int) ReturnList {
 
 	err = c.Visit(link)
 	list, key := Builder(removeDuplicateValues(links), accept, user_agent)
+	resolved_list := resolveUrl(link, list)
 	return ReturnList{
-		List:  list,
+		List:  resolved_list,
 		Key:   key,
 		Error: err,
 	}
 }
 
+func resolveUrl(base_url string, urls []string) []string {
+	base, _ := url.Parse(base_url)
+	return_slice := []string{}
+	for _, val := range urls {
+		u, err := url.Parse(val)
+		if err != nil {
+			fmt.Println("error resolving url ", err)
+			continue
+		}
+		return_slice = append(return_slice, base.ResolveReference(u).String())
+	}
+	return return_slice
+}
+
 //remove duplocate item from slice
 func removeDuplicateValues(UrlSlice []string) []string {
+	fmt.Println("resolving url...")
 	keys := make(map[string]struct{})
 	list := []string{}
 
