@@ -47,6 +47,7 @@ func getallurls(link, accept, user_agent string, depth int) ([]string, error) {
 		fmt.Println("error encoutered ", err)
 	})
 	c.OnRequest(func(r *colly.Request) {
+		fmt.Println(r.URL)
 		links = append(links, r.URL.String())
 	})
 
