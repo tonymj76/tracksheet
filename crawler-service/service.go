@@ -30,6 +30,7 @@ func main() {
 		crawler.GET("/searchurl", controller.SeachUrl)
 		crawler.GET("/searchproduct", controller.SearchProduct)
 		crawler.GET("/getpaths", controller.GetPaths)
+		crawler.POST("/scrap", controller.CrawlerPostController)
 	}
 
 	r.Run(":3001")

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"cache_service/crawler-service/db"
+	"cache_service/crawler-service/handler"
 	"cache_service/crawler-service/search"
 	"fmt"
 
@@ -15,6 +16,14 @@ import (
 var accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
 var userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11"
 
+type Input struct {
+	Str1  string `json:"str1"`
+	Str2  string `json:"str2"`
+	Str3  string `json:"str3"`
+	Depth int    `json:"depth"`
+	Link  string `json:"link"`
+}
+
 func CrawlerGetController(c *gin.Context) {
 	//accept query of user agent, accept, link and depth
 	accept := c.DefaultQuery("accept", accept)
@@ -27,7 +36,7 @@ func CrawlerGetController(c *gin.Context) {
 	}
 
 	if link == "" {
-		log.Fatal("please provide a link in the query to crawl")
+		log.Panicln("please provide a link in the query to crawl")
 		return
 	}
 
@@ -38,6 +47,37 @@ func CrawlerGetController(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List})
 		//after responsing with json, run db update in the background
 		urlModel := db.URLModel{Name: &link}
+		items := &db.Context{URL: &urlModel, ProductList: links}
+		db.SaveToDB(items)
+	}
+}
+
+func CrawlerPostController(c *gin.Context) {
+	var input Input
+
+	accept := c.DefaultQuery("accept", accept)
+	user_agent := c.DefaultQuery("user_agent", userAgent)
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if input.Link == "" {
+		log.Println("please provide a link in the query to crawl")
+		return
+	}
+	a := handler.SampleLink{
+		Str1: input.Str1,
+		Str2: input.Str2,
+		Str3: input.Str3,
+	}
+	links := handler.GetProductUrl(input.Link, accept, user_agent, input.Depth, a)
+	if links.Error != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "error": links.Error})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List})
+		//after responsing with json, run db update in the background
+		urlModel := db.URLModel{Name: &input.Link}
 		items := &db.Context{URL: &urlModel, ProductList: links}
 		db.SaveToDB(items)
 	}

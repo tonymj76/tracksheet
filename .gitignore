@@ -3,3 +3,4 @@ crawler-service/.env
 .idea
 .env
 tmp/
+cache_service/cache/
