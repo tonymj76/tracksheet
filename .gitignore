@@ -2,4 +2,5 @@ cache_service/.env
 crawler-service/.env
 .idea
 .env
-tmp/
+tmp/cache/
+tmp/new.txt
