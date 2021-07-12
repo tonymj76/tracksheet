@@ -16,8 +16,7 @@ func Run(url, user_agent, accept string, depth ...interface{}) handler.ReturnLis
 	if depth != nil {
 		dp := depth[0].(int)
 		if dp >= 1 {
-			a := handler.GetUrl(url, accept, user_agent, dp)
-			return a
+			return handler.GetUrl(url, accept, user_agent, dp)
 		}
 	}
 	conf := handler.NewConnect(logrus.New(), url, accept, user_agent)
