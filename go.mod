@@ -12,7 +12,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.6.0 // indirect
 	github.com/otium/queue v0.0.0-20130722223348-9aab6b722ecd
-	github.com/robfig/cron v1.2.0 // indirect
+	github.com/robfig/cron v1.2.0
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect

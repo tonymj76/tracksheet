@@ -32,7 +32,6 @@ func getallurls(link, accept, user_agent string, depth int) ([]string, error) {
 		),
 		// Cache responses to prevent multiple download of pages
 		// even if the collector is restarted
-		// add a job to clear this in every 24hrs......
 		colly.CacheDir("./cache"),
 	)
 	c.IgnoreRobotsTxt = true
@@ -47,7 +46,6 @@ func getallurls(link, accept, user_agent string, depth int) ([]string, error) {
 		fmt.Println("error encoutered ", err)
 	})
 	c.OnRequest(func(r *colly.Request) {
-		fmt.Println(r.URL)
 		links = append(links, r.URL.String())
 	})
 
