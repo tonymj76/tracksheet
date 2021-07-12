@@ -24,7 +24,14 @@ type Connection struct {
 	urlLink, accept, userAgent string
 }
 
-const robotURL = "%s://%s/robots.txt"
+const (
+	// url link to robots file
+	RobotsURL = "%s://%s/robots.txt"
+	//regex here map a url with a space or no space but must end with .xml
+	XMLPattern = `(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.xml$)|(?P<path2>[^\s]*\.xml\s+$)`
+	// get the links in html file
+	HTMLLinkPattern = `(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^<">]+)`
+)
 
 func recoverMe() {
 	if err := recover(); err != nil {
@@ -49,50 +56,47 @@ func (c *Connection) Search() ReturnList {
 		c.Logger.WithError(err).Fatalln("make sure you entered a valid URL ")
 	}
 	defer recoverMe()
-	// check if the url is a xml.gz file
-	if filepath.Ext(c.urlLink) == ".gz" {
-		resp, err := GoClient(c.urlLink, c)
-		if err != nil {
-			c.Logger.WithError(err).Fatalln("failed to make request to the server")
-		}
-		reader, err := gzip.NewReader(resp.Body)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		byteReader, err := ioutil.ReadAll(reader)
-		if err != nil {
-			c.Logger.WithError(err).Fatalln("failed to read byte")
-		}
-		result := parseSiteMapURL(string(byteReader), parseURL.Hostname())
+
+	switch filepath.Ext(c.urlLink) {
+	case ".gz":
+		// check if the url is a .gz file
+		result, err := c.readDotGZFile(c.urlLink, parseURL.Hostname())
 		return ReturnList{
 			List:  result,
 			Key:   "",
-			Error: nil,
+			Error: err,
 		}
-	}
-
-	// normal urls and append robots to the url path
-	resp, err := GoClient(fmt.Sprintf(robotURL, parseURL.Scheme, parseURL.Hostname()), c)
-	if err != nil {
-		c.Logger.WithError(err).Fatalln("failed to get response")
-	}
-	byteReader, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		c.Logger.WithError(err).Fatalln("failed to read byte")
-	}
-	siteMap := getSiteMapURL(string(byteReader))
-	result, err := c.retrieve(siteMap, parseURL.Hostname())
-	return ReturnList{
-		List:  result,
-		Key:   "",
-		Error: err,
+	case ".xml":
+		// check if the url is a xml file
+		result, err := c.retrieve(c.urlLink, parseURL.Hostname())
+		return ReturnList{
+			List:  result,
+			Key:   "",
+			Error: err,
+		}
+	default:
+		// normal urls and append robots to the url path
+		resp, err := GoClient(fmt.Sprintf(RobotsURL, parseURL.Scheme, parseURL.Hostname()), c)
+		if err != nil {
+			c.Logger.WithError(err).Fatalln("failed to get response")
+		}
+		byteReader, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			c.Logger.WithError(err).Fatalln("failed to read byte")
+		}
+		siteMap := getSiteMapURL(string(byteReader))
+		result, err := c.retrieve(siteMap, parseURL.Hostname())
+		return ReturnList{
+			List:  result,
+			Key:   "",
+			Error: err,
+		}
 	}
 }
 
 // getSiteMapURL retrieve the xml sitemap
 func getSiteMapURL(matchString string) (value string) {
-	//regex here map a url with a space or no space but must end with .xml
-	validString := regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.xml$)|(?P<path2>[^\s]*\.xml\s+$)`)
+	validString := regexp.MustCompile(XMLPattern)
 	for _, link := range validString.FindAllString(matchString, -1) {
 		link = strings.Trim(link, "\n")
 		if strings.Contains(strings.ToLower(link), "product") {
@@ -106,7 +110,7 @@ func getSiteMapURL(matchString string) (value string) {
 
 // parseSiteMapURL retrieves all the url links from the html body
 func parseSiteMapURL(matchString, host string) (validLink []string) {
-	validString := regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^<">]+)`, host))
+	validString := regexp.MustCompile(fmt.Sprintf(HTMLLinkPattern, host))
 	for _, link := range validString.FindAllString(matchString, -1) {
 		path, err := url.Parse(link)
 		if err != nil {
@@ -139,7 +143,21 @@ func (c *Connection) retrieve(siteMap, host string) ([]string, error) {
 	return parseSiteMapURL(string(byteReader), host), nil
 }
 
-// goClient to make http request and set brower header
+// readDotGZFile performs a HTTP Get request for the zipped xml and decodes the results
+func (c *Connection) readDotGZFile(gzfile, host string) ([]string, error) {
+	resp, err := GoClient(gzfile, c)
+	if err != nil {
+		c.Logger.WithError(err).Fatalln("failed to get response")
+	}
+	reader, err := gzip.NewReader(resp.Body)
+	if err != nil {
+		c.Logger.WithError(err).Fatalln("failed to unzip gz file")
+	}
+	byteReader, err := ioutil.ReadAll(reader)
+	return parseSiteMapURL(string(byteReader), host), err
+}
+
+// GoClient to make http request and set brower header
 func GoClient(urlPath string, c *Connection) (*http.Response, error) {
 	var (
 		client http.Client
