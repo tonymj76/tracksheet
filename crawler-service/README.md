@@ -65,6 +65,8 @@ This would return a list of all url items in the DB
 * page (table page)
 * limit (table limit)
 
+Note: This option should only be used when there is a visible pattern in product url eg site.com/prd/123 and site.com/prd/345
+
 8. To manually provide product url example POST `crawler/scrap`, pass in the following body
 
 ```

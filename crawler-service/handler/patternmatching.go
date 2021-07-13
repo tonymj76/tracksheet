@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+
 	"time"
 
 	"github.com/gocolly/colly"
@@ -31,7 +32,6 @@ func getallurls(link, accept, user_agent string, depth int) ([]string, error) {
 			regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^\s]*)`, base.Hostname())),
 		),
 		// Cache responses to prevent multiple download of pages
-		// even if the collector is restarted
 		colly.CacheDir("./cache"),
 	)
 	c.IgnoreRobotsTxt = true
@@ -46,6 +46,7 @@ func getallurls(link, accept, user_agent string, depth int) ([]string, error) {
 		fmt.Println("error encoutered ", err)
 	})
 	c.OnRequest(func(r *colly.Request) {
+		fmt.Println(r.URL)
 		links = append(links, r.URL.String())
 	})
 
@@ -54,8 +55,7 @@ func getallurls(link, accept, user_agent string, depth int) ([]string, error) {
 	c.Wait()
 
 	list := removeDuplicateValues(links)
-	resolved_list := resolveUrl(link, list)
-	return resolved_list, err
+	return list, err
 }
 
 func stringCompare(str1, str2, str3 string) []string {
@@ -80,6 +80,7 @@ func stringCompare(str1, str2, str3 string) []string {
 func GetProductUrl(link, accept, user_agent string, depth int, sample SampleLink) ReturnList {
 	list, err := getallurls(link, accept, user_agent, depth)
 	common := stringCompare(sample.Str1, sample.Str2, sample.Str3)
+	fmt.Println(common)
 	final := []string{}
 	fmt.Println("filtering product link...")
 	for _, val := range list {
