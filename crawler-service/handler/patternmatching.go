@@ -46,7 +46,6 @@ func getallurls(link, accept, user_agent string, depth int, noAsync bool) ([]str
 		fmt.Println("error encoutered ", err)
 	})
 	c.OnRequest(func(r *colly.Request) {
-		fmt.Println(r.URL)
 		links = append(links, r.URL.String())
 	})
 
@@ -91,7 +90,7 @@ func GetProductUrl(link, accept, user_agent string, depth int, sample SampleLink
 				if num == len(common) {
 					final = append(final, val)
 				}
-			}  
+			}
 		}
 	}
 	return ReturnList{
