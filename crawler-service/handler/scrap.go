@@ -44,10 +44,9 @@ func urlResolver(link string) string {
 // keywords check for certain keywords in the dom eg like `buy now`
 func keywords(a string, b *goquery.Selection) bool {
 	kwords := []string{"price", "add to cart", "quantity", "rating", "save", "buy it now", "buy now", "cart", "buy"}
-	h, _ := b.Html()
-	// fmt.Println(h)
+	html, _ := b.Html()
 	for _, keys := range kwords {
-		if strings.Contains(strings.ToLower(h), keys) {
+		if strings.Contains(strings.ToLower(html), keys) {
 			return true
 		}
 	}
@@ -110,7 +109,7 @@ func GetUrl(link, accept, userAgent string, depth int) ReturnList {
 	resolved_list := resolveUrl(link, list)
 	return ReturnList{
 		List:  resolved_list,
-		Key:   link,
+		Key:   "",
 		Error: err,
 	}
 }
