@@ -5,7 +5,6 @@ import (
 	"cache_service/crawler-service/handler"
 	"cache_service/crawler-service/search"
 	"fmt"
-
 	"log"
 	"net/http"
 	"strconv"
@@ -13,19 +12,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-var userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11"
+var (
+	accept    = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+	userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11"
+)
 
 type Input struct {
-	Str1  string `json:"str1"`
-	Str2  string `json:"str2"`
-	Str3  string `json:"str3"`
-	Depth int    `json:"depth"`
-	Link  string `json:"link"`
+	Str1    string `json:"str1"`
+	Str2    string `json:"str2"`
+	Str3    string `json:"str3"`
+	Depth   int    `json:"depth"`
+	Link    string `json:"link"`
+	NoAsync bool   `json:"noasync"`
 }
 
 func CrawlerGetController(c *gin.Context) {
-	//accept query of user agent, accept, link and depth
+	// accept query of user agent, accept, link and depth
 	accept := c.DefaultQuery("accept", accept)
 	user_agent := c.DefaultQuery("user_agent", userAgent)
 	link := c.Query("link")
@@ -45,7 +47,7 @@ func CrawlerGetController(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": err})
 	} else {
 		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List})
-		//after responsing with json, run db update in the background
+		// after responsing with json, run db update in the background
 		urlModel := db.URLModel{Name: &link}
 		items := &db.Context{URL: &urlModel, ProductList: links}
 		db.SaveToDB(items)
@@ -71,12 +73,12 @@ func CrawlerPostController(c *gin.Context) {
 		Str2: input.Str2,
 		Str3: input.Str3,
 	}
-	links := handler.GetProductUrl(input.Link, accept, user_agent, input.Depth, a)
+	links := handler.GetProductUrl(input.Link, accept, user_agent, input.Depth, a, input.NoAsync)
 	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": links.Error})
 	} else {
 		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List})
-		//after responsing with json, run db update in the background
+		// after responsing with json, run db update in the background
 		urlModel := db.URLModel{Name: &input.Link}
 		items := &db.Context{URL: &urlModel, ProductList: links}
 		db.SaveToDB(items)
@@ -84,14 +86,13 @@ func CrawlerPostController(c *gin.Context) {
 }
 
 func GetUrlModel(c *gin.Context) {
-	//get all items from url model
+	// get all items from url model
 	var urls []db.URLModel
 	var count int64
 
 	db.DB.Scopes(db.Paginate(c)).Find(&urls).Count(&count)
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "url": urls, "total": count})
-
 }
 
 func GetPaths(c *gin.Context) {
@@ -99,7 +100,6 @@ func GetPaths(c *gin.Context) {
 	var count int64
 	db.DB.Scopes(db.Paginate(c)).Find(&paths).Count(&count)
 	c.JSON(http.StatusOK, gin.H{"success": true, "path": paths, "total": count})
-
 }
 
 func GetProductUrl(c *gin.Context) {
@@ -127,7 +127,6 @@ func GetProductUrl(c *gin.Context) {
 			"product": product_url,
 			"total":   count,
 		})
-
 }
 
 func DeleteUrlDetails(c *gin.Context) {
