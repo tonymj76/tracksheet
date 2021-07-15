@@ -17,3 +17,11 @@ All notable changes in this project are added to this file
 ### Changed
 
 ### Removed
+
+[2021-07-12]
+### Added
+-[] Added option to generate pattern from example url and match list based on them
+
+### Changed
+
+### Removed
