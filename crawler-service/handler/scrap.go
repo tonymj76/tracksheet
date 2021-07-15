@@ -32,9 +32,18 @@ func checkImgPrice(a string, b *goquery.Selection) bool {
 	return false
 }
 
+//urlResolver add www. if the url don't have it
+func urlResolver(link string) string {
+	base, _ := url.Parse(link)
+	if !strings.Contains(base.Host, "www") {
+		return fmt.Sprintf("%s://www.%s%s?%s", base.Scheme, base.Host, base.Path, base.RawQuery)
+	}
+	return link
+}
+
 // keywords check for certain keywords in the dom eg like `buy now`
 func keywords(a string, b *goquery.Selection) bool {
-	kwords := []string{"price", "add to cart", "quantity", "rating", "save", "buy it now", "buy now", "svg", "buy"}
+	kwords := []string{"price", "add to cart", "quantity", "rating", "save", "buy it now", "buy now", "cart", "buy"}
 	h, _ := b.Html()
 	// fmt.Println(h)
 	for _, keys := range kwords {
@@ -47,13 +56,11 @@ func keywords(a string, b *goquery.Selection) bool {
 
 // GetUrl given the url and depth, recursively get all related url of the site
 func GetUrl(link, accept, userAgent string, depth int) ReturnList {
+	link = urlResolver(link)
 	links := []string{}
 	base, err := url.Parse(link)
 	if err != nil {
 		logrus.WithError(err).Fatalln("Error parsing URL")
-	}
-	if !strings.Contains(base.Host, "www") {
-		return ReturnList{Error: fmt.Errorf("the URL is %v want %s://www.%s", base, base.Scheme, base.Host)}
 	}
 	//get base domain
 	base_domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
