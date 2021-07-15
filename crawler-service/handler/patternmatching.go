@@ -36,7 +36,7 @@ func getallurls(link, accept, user_agent string, depth int) ([]string, error) {
 	)
 	c.IgnoreRobotsTxt = true
 	// number of go routines.
-	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 6, Delay: 10 * time.Second})
+	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 6, RandomDelay: 10 * time.Second})
 
 	// Find and visit all links
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
