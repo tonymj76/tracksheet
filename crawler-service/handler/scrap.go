@@ -19,7 +19,7 @@ type ReturnList struct {
 	Error error
 }
 
-const PricePattern = `[$]\s?[+-]?[0-9]{1,3}(?:(?:,?[0-9]{3}))*(?:\.[0-9]{1,2})?`
+const PricePattern = `\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})`
 
 // checkImgPrice check for price and if the anchor tag has img
 func checkImgPrice(a string, b *goquery.Selection) bool {
@@ -82,11 +82,10 @@ func GetUrl(link, accept, userAgent string, depth int) ReturnList {
 		),
 		// Cache responses to prevent multiple download of pages
 		// even if the collector is restarted
-		// add a job to clear this in every 24hrs......
 		colly.CacheDir("./cache"),
 	)
 	// number of go routines.
-	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 6, RandomDelay: 5 * time.Second})
+	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 6, RandomDelay: 10 * time.Second})
 
 	// Find and visit all links
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
