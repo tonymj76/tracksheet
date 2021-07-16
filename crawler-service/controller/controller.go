@@ -45,7 +45,9 @@ func CrawlerGetController(c *gin.Context) {
 	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": err})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "url": link})
+		//truncate list to avoid browser throwing error of too much payload
+		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List[0:1000],
+			"message": "this product list has been truncated to the first 1000, use fetch query to retrieve the rest from db", "url": link})
 		// after responsing with json, run db update in the background
 		urlModel := db.URLModel{Name: &link}
 		items := &db.Context{URL: &urlModel, ProductList: links}
@@ -77,7 +79,9 @@ func CrawlerPostController(c *gin.Context) {
 	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": links.Error})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "url": input.Link})
+		//truncate list to avoid browser throwing error of too much payload
+		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List[0:1000],
+			"message": "this product list has been truncated to the first 1000, use fetch query to retrieve the rest from db", "url": input.Link})
 		// after responsing with json, run db update in the background
 		urlModel := db.URLModel{Name: &input.Link}
 		items := &db.Context{URL: &urlModel, ProductList: links}
