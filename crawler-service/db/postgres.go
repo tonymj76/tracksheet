@@ -53,6 +53,7 @@ func CreateDBConnection() {
 	DB = db
 }
 
+//pagination hook
 func Paginate(r *gin.Context) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		page, _ := strconv.Atoi(r.DefaultQuery("page", "0"))

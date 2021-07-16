@@ -113,7 +113,7 @@ func GetUrl(link, accept, userAgent string, depth int) ReturnList {
 	}
 }
 
-//remove duplocate item from slice
+//remove duplicate item from slice
 func removeDuplicateValues(UrlSlice []string) []string {
 	fmt.Println("resolving url...")
 	keys := make(map[string]struct{})
