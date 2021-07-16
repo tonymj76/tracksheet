@@ -16,7 +16,7 @@ type SampleLink struct {
 	Str1, Str2, Str3 string
 }
 
-func getallurls(link, accept, user_agent string, depth int, noAsync bool) ([]string, error) {
+func getallurls(link, accept, user_agent string, depth int) ([]string, error) {
 	links := []string{}
 	base, err := url.Parse(link)
 	if err != nil {
@@ -25,7 +25,7 @@ func getallurls(link, accept, user_agent string, depth int, noAsync bool) ([]str
 
 	c := colly.NewCollector(
 		colly.MaxDepth(depth),
-		colly.Async(!noAsync),
+		colly.Async(true),
 		colly.UserAgent(user_agent),
 		colly.URLFilters(
 			//resolve url if item domain is not the same as base domain, link is unrelated. skip
@@ -76,8 +76,8 @@ func stringCompare(str1, str2, str3 string) []string {
 	return common_item
 }
 
-func GetProductUrl(link, accept, user_agent string, depth int, sample SampleLink, noAsync bool) ReturnList {
-	list, err := getallurls(link, accept, user_agent, depth, noAsync)
+func GetProductUrl(link, accept, user_agent string, depth int, sample SampleLink) ReturnList {
+	list, err := getallurls(link, accept, user_agent, depth)
 	common := stringCompare(sample.Str1, sample.Str2, sample.Str3)
 	fmt.Println(common)
 	final := []string{}

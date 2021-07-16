@@ -18,12 +18,11 @@ var (
 )
 
 type Input struct {
-	Str1    string `json:"str1"`
-	Str2    string `json:"str2"`
-	Str3    string `json:"str3"`
-	Depth   int    `json:"depth"`
-	Link    string `json:"link"`
-	NoAsync bool   `json:"noasync"`
+	Str1  string `json:"str1"`
+	Str2  string `json:"str2"`
+	Str3  string `json:"str3"`
+	Depth int    `json:"depth"`
+	Link  string `json:"link"`
 }
 
 func CrawlerGetController(c *gin.Context) {
@@ -74,7 +73,7 @@ func CrawlerPostController(c *gin.Context) {
 		Str2: input.Str2,
 		Str3: input.Str3,
 	}
-	links := handler.GetProductUrl(input.Link, accept, user_agent, input.Depth, a, input.NoAsync)
+	links := handler.GetProductUrl(input.Link, accept, user_agent, input.Depth, a)
 	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": links.Error})
 	} else {
