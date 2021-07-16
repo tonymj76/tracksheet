@@ -46,7 +46,7 @@ func CrawlerGetController(c *gin.Context) {
 	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": err})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List})
+		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "url": link})
 		// after responsing with json, run db update in the background
 		urlModel := db.URLModel{Name: &link}
 		items := &db.Context{URL: &urlModel, ProductList: links}
@@ -57,6 +57,7 @@ func CrawlerGetController(c *gin.Context) {
 func CrawlerPostController(c *gin.Context) {
 	var input Input
 
+	//pass in user agent and accept as query or use default
 	accept := c.DefaultQuery("accept", accept)
 	user_agent := c.DefaultQuery("user_agent", userAgent)
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -77,7 +78,7 @@ func CrawlerPostController(c *gin.Context) {
 	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": links.Error})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List})
+		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "url": input.Link})
 		// after responsing with json, run db update in the background
 		urlModel := db.URLModel{Name: &input.Link}
 		items := &db.Context{URL: &urlModel, ProductList: links}

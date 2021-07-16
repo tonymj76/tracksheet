@@ -106,26 +106,11 @@ func GetUrl(link, accept, userAgent string, depth int) ReturnList {
 	c.Wait()
 	//group links
 	list := removeDuplicateValues(links)
-	resolved_list := resolveUrl(link, list)
 	return ReturnList{
-		List:  resolved_list,
+		List:  list,
 		Key:   "",
 		Error: err,
 	}
-}
-
-func resolveUrl(base_url string, urls []string) []string {
-	base, _ := url.Parse(base_url)
-	return_slice := []string{}
-	for _, val := range urls {
-		u, err := url.Parse(val)
-		if err != nil {
-			fmt.Println("error resolving url ", err)
-			continue
-		}
-		return_slice = append(return_slice, base.ResolveReference(u).String())
-	}
-	return return_slice
 }
 
 //remove duplocate item from slice
