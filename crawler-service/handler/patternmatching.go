@@ -79,7 +79,6 @@ func stringCompare(str1, str2, str3 string) []string {
 func GetProductUrl(link, accept, user_agent string, depth int, sample SampleLink) ReturnList {
 	list, err := getallurls(link, accept, user_agent, depth)
 	common := stringCompare(sample.Str1, sample.Str2, sample.Str3)
-	fmt.Println(common)
 	final := []string{}
 	fmt.Println("filtering product link...")
 	for _, val := range list {
