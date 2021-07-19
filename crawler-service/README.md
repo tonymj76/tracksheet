@@ -61,9 +61,6 @@ This would return a list of all url items in the DB
 * limit (table limit)
 * k (the search string)
 
-6. To get path maps GET `/crawler/getpaths` pass the following queries
-* page (table page)
-* limit (table limit)
 
 Note: This option should only be used when there is a visible pattern in product url eg site.com/prd/123 and site.com/prd/345
 

@@ -63,7 +63,6 @@ func (c *Connection) Search() ReturnList {
 		result, err := c.readDotGZFile(c.urlLink, parseURL.Hostname())
 		return ReturnList{
 			List:  result,
-			Key:   "",
 			Error: err,
 		}
 	case ".xml":
@@ -71,7 +70,6 @@ func (c *Connection) Search() ReturnList {
 		result, err := c.retrieve(c.urlLink, parseURL.Hostname())
 		return ReturnList{
 			List:  result,
-			Key:   "",
 			Error: err,
 		}
 	default:
@@ -88,7 +86,6 @@ func (c *Connection) Search() ReturnList {
 		result, err := c.retrieve(siteMap, parseURL.Hostname())
 		return ReturnList{
 			List:  result,
-			Key:   "",
 			Error: err,
 		}
 	}

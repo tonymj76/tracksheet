@@ -99,13 +99,6 @@ func GetUrlModel(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "url": urls, "total": count})
 }
 
-func GetPaths(c *gin.Context) {
-	var paths []db.PathMap
-	var count int64
-	db.DB.Scopes(db.Paginate(c)).Find(&paths).Count(&count)
-	c.JSON(http.StatusOK, gin.H{"success": true, "path": paths, "total": count})
-}
-
 func GetProductUrl(c *gin.Context) {
 	var url_detail db.URLModel
 	var product_url []db.URLProductLink

@@ -94,7 +94,6 @@ func GetProductUrl(link, accept, user_agent string, depth int, sample SampleLink
 	}
 	return ReturnList{
 		List:  final,
-		Key:   "",
 		Error: err,
 	}
 }

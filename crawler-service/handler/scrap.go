@@ -15,7 +15,6 @@ import (
 type ReturnList struct {
 	// List of the product details
 	List  []string
-	Key   string
 	Error error
 }
 
@@ -108,7 +107,6 @@ func GetUrl(link, accept, userAgent string, depth int) ReturnList {
 	list := removeDuplicateValues(links)
 	return ReturnList{
 		List:  list,
-		Key:   "",
 		Error: err,
 	}
 }

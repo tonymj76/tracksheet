@@ -19,13 +19,6 @@ func SaveToDB(r *Context) {
 		if err := DB.Where("name = ?", r.URL.Name).First(&url_model).Error; err != nil {
 			return
 		}
-		if r.ProductList.Key != "" {
-			pathModel := PathMap{PathField: r.ProductList.Key, URLModelID: url_model.ID, URLModel: &url_model}
-			err := DB.Create(&pathModel).Error
-			if err != nil {
-				fmt.Println("error writing path map to db ", err)
-			}
-		}
 		for _, value := range r.ProductList.List {
 			linkModel := URLProductLink{ProductURL: &value, URLModelID: url_model.ID, URLModel: &url_model}
 			err := DB.Create(&linkModel).Error
@@ -34,13 +27,6 @@ func SaveToDB(r *Context) {
 			}
 		}
 	} else {
-		if r.ProductList.Key != "" {
-			pathModel := PathMap{PathField: r.ProductList.Key, URLModelID: r.URL.ID, URLModel: r.URL}
-			err := DB.Create(&pathModel).Error
-			if err != nil {
-				fmt.Println("error writing path map to db ", err)
-			}
-		}
 		for _, value := range r.ProductList.List {
 			linkModel := URLProductLink{ProductURL: &value, URLModelID: r.URL.ID, URLModel: r.URL}
 			err := DB.Create(&linkModel).Error

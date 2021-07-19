@@ -25,13 +25,6 @@ type (
 		URLModelID uint
 		URLModel   *URLModel
 	}
-
-	PathMap struct {
-		gorm.Model
-		PathField  string
-		URLModelID uint
-		URLModel   *URLModel
-	}
 )
 
 var DB *gorm.DB
@@ -45,7 +38,7 @@ func CreateDBConnection() {
 	if err != nil {
 		logrus.WithError(err).Fatalln("failed to initiate the db")
 	}
-	err = db.AutoMigrate(&URLModel{}, &URLProductLink{}, &PathMap{})
+	err = db.AutoMigrate(&URLModel{}, &URLProductLink{})
 	if err != nil {
 		logrus.WithError(err).Fatalln("error migrating")
 

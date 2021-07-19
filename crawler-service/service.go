@@ -32,7 +32,6 @@ func main() {
 		crawler.GET("/urldelete", controller.DeleteUrlDetails)
 		crawler.GET("/searchurl", controller.SeachUrl)
 		crawler.GET("/searchproduct", controller.SearchProduct)
-		crawler.GET("/getpaths", controller.GetPaths)
 		crawler.POST("/scrap", controller.CrawlerPostController)
 	}
 
