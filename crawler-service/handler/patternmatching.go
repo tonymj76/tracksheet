@@ -57,6 +57,7 @@ func getallurls(link, accept, user_agent string, depth int) ([]string, error) {
 	return list, err
 }
 
+//remove extra char from string and find common item
 func stringCompare(str1, str2, str3 string) []string {
 	array1 := regexp.MustCompile(`[\/\&\:\=\?\s]+`).Split(str1, -1)
 	array2 := regexp.MustCompile(`[\/\&\:\=\?\s]+`).Split(str2, -1)
@@ -76,6 +77,7 @@ func stringCompare(str1, str2, str3 string) []string {
 	return common_item
 }
 
+//filter out url based on pattern
 func GetProductUrl(link, accept, user_agent string, depth int, sample SampleLink) ReturnList {
 	list, err := getallurls(link, accept, user_agent, depth)
 	common := stringCompare(sample.Str1, sample.Str2, sample.Str3)

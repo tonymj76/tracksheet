@@ -33,7 +33,6 @@ var DB *gorm.DB
 // the config details can be gotten from .env file
 func CreateDBConnection() {
 	uri := os.Getenv("DATABASE_URI")
-	// uri := "postgres://postgres:postgres@localhost:5432/cuvva_merchant?sslmode=disable"
 	db, err := gorm.Open(postgres.Open(uri), &gorm.Config{Logger: logger.Discard})
 	if err != nil {
 		logrus.WithError(err).Fatalln("failed to initiate the db")

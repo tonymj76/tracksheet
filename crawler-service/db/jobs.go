@@ -11,11 +11,13 @@ type Context struct {
 	ProductList handler.ReturnList
 }
 
+//save to db
 func SaveToDB(r *Context) {
 	fmt.Println("saving to db...")
 	var url_model URLModel
 	error := DB.Create(&r.URL).Error
 	if error != nil {
+		//if url already exist, use it to ref other product url
 		if err := DB.Where("name = ?", r.URL.Name).First(&url_model).Error; err != nil {
 			return
 		}
