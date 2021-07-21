@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/casbin/casbin/v2/config"
 	"github.com/sirupsen/logrus"
 )
 

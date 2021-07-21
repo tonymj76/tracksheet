@@ -2,7 +2,6 @@ package db
 
 import (
 	"cache_service/crawler-service/config"
-	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -41,12 +40,11 @@ func CreateDBConnection() {
 	err = db.AutoMigrate(&URLModel{}, &URLProductLink{})
 	if err != nil {
 		logrus.WithError(err).Fatalln("error migrating")
-
 	}
 	DB = db
 }
 
-//pagination hook
+// pagination hook
 func Paginate(r *gin.Context) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		page, _ := strconv.Atoi(r.DefaultQuery("page", "0"))
