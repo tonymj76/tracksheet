@@ -1,25 +1,23 @@
 package main
 
 import (
+	"cache_service/crawler-service/config"
 	"cache_service/crawler-service/controller"
 	"cache_service/crawler-service/db"
 	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/robfig/cron"
 )
 
 func main() {
-	//load env var
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file ", err)
-	}
+	// load env var
+	config.LoadConfigFromJSON()
+
 	db.CreateDBConnection()
 	cron_job()
-	//rest api config
+	// rest api config
 	r := gin.Default()
 
 	crawler := r.Group("/crawler")
@@ -39,7 +37,7 @@ func main() {
 }
 
 func cron_job() {
-	//cron job to clean cache every 24 hours
+	// cron job to clean cache every 24 hours
 	c := cron.New()
 	c.AddFunc("@daily", func() {
 		log.Println("running daily job")
