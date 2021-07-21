@@ -4,3 +4,5 @@ crawler-service/.env
 .env
 tmps/
 crawler-service/cache/
+env.json
+.vscode
