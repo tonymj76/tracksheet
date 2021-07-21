@@ -1,19 +1,19 @@
 package handler
 
 import (
+	"cache_service/crawler-service/config"
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-
 	"time"
 
+	"github.com/casbin/casbin/v2/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -27,7 +27,7 @@ type Connection struct {
 const (
 	// url link to robots file
 	RobotsURL = "%s://%s/robots.txt"
-	//regex here map a url with a space or no space but must end with .xml
+	// regex here map a url with a space or no space but must end with .xml
 	XMLPattern = `(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.xml$)|(?P<path2>[^\s]*\.xml\s+$)`
 	// get the links in html file
 	HTMLLinkPattern = `(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^<">]+)`
@@ -39,7 +39,7 @@ func recoverMe() {
 	}
 }
 
-//NewConnect create new Connection struct
+// NewConnect create new Connection struct
 func NewConnect(logger *logrus.Logger, urlPath, accept, userAgent string) *Connection {
 	return &Connection{
 		Logger:    logger,
@@ -156,10 +156,8 @@ func (c *Connection) readDotGZFile(gzfile, host string) ([]string, error) {
 
 // GoClient to make http request and set brower header
 func GoClient(urlPath string, c *Connection) (*http.Response, error) {
-	var (
-		client http.Client
-	)
-	httpProxy := os.Getenv("HTTP_PROXY")
+	var client http.Client
+	httpProxy := config.GetEnv("HTTP_PROXY")
 	if httpProxy != "" {
 		proxyUrl, _ := url.Parse(httpProxy)
 		client = http.Client{Timeout: 20 * time.Second, Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrl)}}

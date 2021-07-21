@@ -1,6 +1,7 @@
 package db
 
 import (
+	"cache_service/crawler-service/config"
 	"os"
 	"strconv"
 
@@ -32,7 +33,7 @@ var DB *gorm.DB
 // CreateDBConnection sets up the database to be used
 // the config details can be gotten from .env file
 func CreateDBConnection() {
-	uri := os.Getenv("DATABASE_URI")
+	uri := config.GetEnv("DATABASE_URI")
 	db, err := gorm.Open(postgres.Open(uri), &gorm.Config{Logger: logger.Discard})
 	if err != nil {
 		logrus.WithError(err).Fatalln("failed to initiate the db")
