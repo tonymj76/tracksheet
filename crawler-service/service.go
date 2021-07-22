@@ -33,7 +33,7 @@ func main() {
 		crawler.POST("/scrap", controller.CrawlerPostController)
 	}
 
-	r.Run(":3001")
+	r.Run(config.GetEnv("PORT"))
 }
 
 func cron_job() {
