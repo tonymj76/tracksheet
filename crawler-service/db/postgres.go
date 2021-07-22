@@ -1,7 +1,7 @@
 package db
 
 import (
-	"os"
+	"cache_service/crawler-service/config"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -32,7 +32,7 @@ var DB *gorm.DB
 // CreateDBConnection sets up the database to be used
 // the config details can be gotten from .env file
 func CreateDBConnection() {
-	uri := os.Getenv("DATABASE_URI")
+	uri := config.GetEnv("DATABASE_URI")
 	db, err := gorm.Open(postgres.Open(uri), &gorm.Config{Logger: logger.Discard})
 	if err != nil {
 		logrus.WithError(err).Fatalln("failed to initiate the db")
@@ -40,12 +40,11 @@ func CreateDBConnection() {
 	err = db.AutoMigrate(&URLModel{}, &URLProductLink{})
 	if err != nil {
 		logrus.WithError(err).Fatalln("error migrating")
-
 	}
 	DB = db
 }
 
-//pagination hook
+// pagination hook
 func Paginate(r *gin.Context) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		page, _ := strconv.Atoi(r.DefaultQuery("page", "0"))
