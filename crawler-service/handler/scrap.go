@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"cache_service/crawler-service/config"
+
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
@@ -53,7 +55,7 @@ func keywords(a string, b *goquery.Selection) bool {
 }
 
 // GetUrl given the url and depth, recursively get all related url of the site
-func GetUrl(link, accept, userAgent string, depth int) ReturnList {
+func GetUrl(link string, depth int) ReturnList {
 	link = urlResolver(link)
 	links := []string{}
 	base, err := url.Parse(link)
@@ -66,7 +68,7 @@ func GetUrl(link, accept, userAgent string, depth int) ReturnList {
 	c := colly.NewCollector(
 		colly.MaxDepth(depth),
 		colly.Async(true),
-		colly.UserAgent(userAgent),
+		colly.UserAgent(config.GetEnv("userAgent")),
 		colly.IgnoreRobotsTxt(),
 		colly.DisallowedURLFilters(
 			// don't scap any url with the following keywords

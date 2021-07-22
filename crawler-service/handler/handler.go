@@ -112,7 +112,8 @@ func parseSiteMapURL(matchString, host string) (validLink []string) {
 		// filter out static assets
 		extension := strings.Split(path.Path, ".")
 		if len(extension) > 1 {
-			if strings.Contains(extension[1], "html") || strings.Contains(extension[1], "php") {
+			if strings.Contains(extension[1], "html") || strings.Contains(extension[1], "php") ||
+				strings.Contains(extension[1], "phtml") || strings.Contains(extension[1], "htm") {
 				validLink = append(validLink, link)
 			}
 		} else {

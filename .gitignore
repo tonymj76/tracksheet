@@ -1,5 +1,5 @@
-cache_service/.env
-crawler-service/.env
+cache_service/env.json
+crawler-service/env.json
 .idea
 .env
 tmps/

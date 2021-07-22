@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"cache_service/crawler-service/config"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -16,7 +17,7 @@ type SampleLink struct {
 	Str1, Str2, Str3 string
 }
 
-func getallurls(link, accept, user_agent string, depth int) ([]string, error) {
+func getallurls(link string, depth int) ([]string, error) {
 	links := []string{}
 	base, err := url.Parse(link)
 	if err != nil {
@@ -26,7 +27,7 @@ func getallurls(link, accept, user_agent string, depth int) ([]string, error) {
 	c := colly.NewCollector(
 		colly.MaxDepth(depth),
 		colly.Async(true),
-		colly.UserAgent(user_agent),
+		colly.UserAgent(config.GetEnv("userAgent")),
 		colly.URLFilters(
 			//resolve url if item domain is not the same as base domain, link is unrelated. skip
 			regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^\s]*)`, base.Hostname())),
@@ -78,8 +79,8 @@ func stringCompare(str1, str2, str3 string) []string {
 }
 
 //filter out url based on pattern
-func GetProductUrl(link, accept, user_agent string, depth int, sample SampleLink) ReturnList {
-	list, err := getallurls(link, accept, user_agent, depth)
+func GetProductUrl(link string, depth int, sample SampleLink) ReturnList {
+	list, err := getallurls(link, depth)
 	common := stringCompare(sample.Str1, sample.Str2, sample.Str3)
 	final := []string{}
 	fmt.Println("filtering product link...")

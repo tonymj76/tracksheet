@@ -13,19 +13,25 @@ There is two search Engine implemented.
 
 ## Setting up :gear
 
--[] Create a .env in the crawler-service dir. The content of the file should be
-eg `DATABASE_URI="postgres://postgres:postgres@localhost:5432/tracksheet?sslmode=disable"`
+-[] Create an env.json file in the crawler-service dir. The content of the file should be
+eg 
 
 ```sh
-DATABASE_URI = your_postgres_url
+{
+"DATABASE_URI":"postgres://postgres:postgres@localhost:5432/tracksheet?sslmode=disable",
+"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+"userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11",
+"HTTP_PROXY":"https://proxy"
+}
+
 ```
+
+
 
 ### Accessing end points
 
 1. To access the crawl service access the end point GET `/crawler/scrap`, pass the following as queries
 
-* accept (ignore to use default)
-* user_aget (ignore to use default)
 * link (link of site to crawl)
 * depth (use if using recursive depth search method); an int value. The more the depth, the more itemsretrieved
 
@@ -75,7 +81,3 @@ Note: This option should only be used when there is a visible pattern in product
 	Link  (url to scrap)
 }
 ```
-
-Pass in the following queries:
-* accept (ignore to use default)
-* user_aget (ignore to use default)

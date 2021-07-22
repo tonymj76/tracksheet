@@ -2,8 +2,8 @@ package config
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
-	"os"
 )
 
 type configData map[string]string
@@ -14,9 +14,9 @@ var jsonData *configData
 func LoadConfigFromJSON() {
 	const file = "env.json"
 
-	envFile, err := os.ReadFile(file)
+	envFile, err := ioutil.ReadFile(file)
 	if err != nil {
-		log.Fatalf("\n\n%s does not exist\n%v\n", file, err)
+		log.Fatalf("\n\n%s does not exist\n%v\n consider creating an env.json file", file, err)
 	}
 
 	data := configData{}

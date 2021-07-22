@@ -12,11 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var (
-	accept    = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-	userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11"
-)
-
 type Input struct {
 	Str1  string `json:"str1"`
 	Str2  string `json:"str2"`
@@ -26,9 +21,6 @@ type Input struct {
 }
 
 func CrawlerGetController(c *gin.Context) {
-	// accept query of user agent, accept, link and depth
-	accept := c.DefaultQuery("accept", accept)
-	user_agent := c.DefaultQuery("user_agent", userAgent)
 	link := c.Query("link")
 	depth := c.DefaultQuery("depth", "0")
 	depth_val, err := strconv.Atoi(depth)
@@ -41,13 +33,11 @@ func CrawlerGetController(c *gin.Context) {
 		return
 	}
 
-	links := search.Run(link, user_agent, accept, depth_val)
+	links := search.Run(link, depth_val)
 	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": err})
 	} else {
-		//truncate list to avoid browser throwing error of too much payload
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List[0:1000],
-			"message": "this product list has been truncated to the first 1000, use fetch query to retrieve the rest from db", "url": link})
+		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "url": link})
 		// after responsing with json, run db update in the background
 		urlModel := db.URLModel{Name: &link}
 		items := &db.Context{URL: &urlModel, ProductList: links}
@@ -58,9 +48,6 @@ func CrawlerGetController(c *gin.Context) {
 func CrawlerPostController(c *gin.Context) {
 	var input Input
 
-	//pass in user agent and accept as query or use default
-	accept := c.DefaultQuery("accept", accept)
-	user_agent := c.DefaultQuery("user_agent", userAgent)
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -70,18 +57,18 @@ func CrawlerPostController(c *gin.Context) {
 		log.Println("please provide a link in the query to crawl")
 		return
 	}
+	//get sample product link input
 	sample_input := handler.SampleLink{
 		Str1: input.Str1,
 		Str2: input.Str2,
 		Str3: input.Str3,
 	}
-	links := handler.GetProductUrl(input.Link, accept, user_agent, input.Depth, sample_input)
+	links := handler.GetProductUrl(input.Link, input.Depth, sample_input)
 	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": links.Error})
 	} else {
 		//truncate list to avoid browser throwing error of too much payload
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List[0:1000],
-			"message": "this product list has been truncated to the first 1000, use fetch query to retrieve the rest from db", "url": input.Link})
+		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "url": input.Link})
 		// after responsing with json, run db update in the background
 		urlModel := db.URLModel{Name: &input.Link}
 		items := &db.Context{URL: &urlModel, ProductList: links}
