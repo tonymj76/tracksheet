@@ -70,12 +70,12 @@ func CrawlerPostController(c *gin.Context) {
 		log.Println("please provide a link in the query to crawl")
 		return
 	}
-	a := handler.SampleLink{
+	sample_input := handler.SampleLink{
 		Str1: input.Str1,
 		Str2: input.Str2,
 		Str3: input.Str3,
 	}
-	links := handler.GetProductUrl(input.Link, accept, user_agent, input.Depth, a)
+	links := handler.GetProductUrl(input.Link, accept, user_agent, input.Depth, sample_input)
 	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": links.Error})
 	} else {

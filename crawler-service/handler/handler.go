@@ -96,11 +96,7 @@ func getSiteMapURL(matchString string) (value string) {
 	validString := regexp.MustCompile(XMLPattern)
 	for _, link := range validString.FindAllString(matchString, -1) {
 		link = strings.Trim(link, "\n")
-		if strings.Contains(strings.ToLower(link), "product") {
-			return link
-		} else {
-			return link
-		}
+		return link
 	}
 	return
 }
