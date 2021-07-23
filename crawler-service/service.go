@@ -24,11 +24,11 @@ func main() {
 
 	{
 		crawler.GET("/scrap", controller.CrawlerGetController)
-		crawler.GET("/url", controller.GetUrlModel)
+		crawler.GET("/domain", controller.GetUrlModel)
 		crawler.GET("/product", controller.GetProductUrl)
 		crawler.GET("/productdelete", controller.DeleteProductUrl)
 		crawler.GET("/urldelete", controller.DeleteUrlDetails)
-		crawler.GET("/searchurl", controller.SeachUrl)
+		crawler.GET("/searchdomain", controller.SeachUrl)
 		crawler.GET("/searchproduct", controller.SearchProduct)
 		crawler.POST("/scrap", controller.CrawlerPostController)
 	}

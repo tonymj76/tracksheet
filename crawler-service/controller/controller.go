@@ -37,10 +37,10 @@ func CrawlerGetController(c *gin.Context) {
 	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": err})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "url": link})
+		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "root_url": link})
 		// after responsing with json, run db update in the background
-		urlModel := db.URLModel{Name: &link}
-		items := &db.Context{URL: &urlModel, ProductList: links}
+		urlModel := db.RootUrl{Name: &link}
+		items := &db.Context{URL: urlModel, ProductList: links}
 		db.SaveToDB(items)
 	}
 }
@@ -68,26 +68,26 @@ func CrawlerPostController(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": links.Error})
 	} else {
 		//truncate list to avoid browser throwing error of too much payload
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "url": input.Link})
+		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "root_url": input.Link})
 		// after responsing with json, run db update in the background
-		urlModel := db.URLModel{Name: &input.Link}
-		items := &db.Context{URL: &urlModel, ProductList: links}
+		urlModel := db.RootUrl{Name: &input.Link}
+		items := &db.Context{URL: urlModel, ProductList: links}
 		db.SaveToDB(items)
 	}
 }
 
 func GetUrlModel(c *gin.Context) {
 	// get all items from url model
-	var urls []db.URLModel
+	var urls []db.RootUrl
 	var count int64
 
 	db.DB.Scopes(db.Paginate(c)).Find(&urls).Count(&count)
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "url": urls, "total": count})
+	c.JSON(http.StatusOK, gin.H{"success": true, "root_url": urls, "total": count})
 }
 
 func GetProductUrl(c *gin.Context) {
-	var url_detail db.URLModel
+	var url_detail db.RootUrl
 	var product_url []db.URLProductLink
 	var count int64
 
@@ -102,19 +102,19 @@ func GetProductUrl(c *gin.Context) {
 		return
 	}
 
-	db.DB.Scopes(db.Paginate(c)).Where("url_model_id = ?", url_detail.ID).Find(&product_url).Count(&count)
+	db.DB.Scopes(db.Paginate(c)).Where("root_url_id = ?", url_detail.ID).Find(&product_url).Count(&count)
 
 	c.JSON(http.StatusOK,
 		gin.H{
-			"success": true,
-			"url":     url_detail,
-			"product": product_url,
-			"total":   count,
+			"success":  true,
+			"root_url": url_detail,
+			"product":  product_url,
+			"total":    count,
 		})
 }
 
 func DeleteUrlDetails(c *gin.Context) {
-	var url_detail db.URLModel
+	var url_detail db.RootUrl
 	url := c.Query("link")
 	if url == "" {
 		fmt.Println("Please provide a url in query")
@@ -127,7 +127,7 @@ func DeleteUrlDetails(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "item deleted successfully"})
 
-	items := &db.Context{URL: &url_detail}
+	items := &db.Context{URL: url_detail}
 	db.DeleteID(items)
 }
 
@@ -150,7 +150,7 @@ func DeleteProductUrl(c *gin.Context) {
 }
 
 func SeachUrl(c *gin.Context) {
-	var url_detail []db.URLModel
+	var url_detail []db.RootUrl
 	k := c.Query("k")
 	var count int64
 	if k == "" {
@@ -162,9 +162,9 @@ func SeachUrl(c *gin.Context) {
 
 	c.JSON(http.StatusOK,
 		gin.H{
-			"success": true,
-			"url":     url_detail,
-			"total":   count,
+			"success":  true,
+			"root_url": url_detail,
+			"total":    count,
 		})
 }
 

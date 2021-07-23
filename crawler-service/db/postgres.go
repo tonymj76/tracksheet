@@ -14,7 +14,7 @@ import (
 
 // URLModel is the url links to be save
 type (
-	URLModel struct {
+	RootUrl struct {
 		gorm.Model
 		Name *string `gorm:"unique;not null"`
 	}
@@ -22,8 +22,7 @@ type (
 	URLProductLink struct {
 		gorm.Model
 		ProductURL *string `gorm:"unique_index;not null"`
-		URLModelID uint
-		URLModel   *URLModel
+		RootUrlId  uint
 	}
 )
 
@@ -37,7 +36,7 @@ func CreateDBConnection() {
 	if err != nil {
 		logrus.WithError(err).Fatalln("failed to initiate the db")
 	}
-	err = db.AutoMigrate(&URLModel{}, &URLProductLink{})
+	err = db.AutoMigrate(&RootUrl{}, &URLProductLink{})
 	if err != nil {
 		logrus.WithError(err).Fatalln("error migrating")
 	}
