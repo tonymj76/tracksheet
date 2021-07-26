@@ -27,6 +27,6 @@ func init() {
 	logrus.SetFormatter(formatter)
 }
 func formatFilePath(path string) string {
-	arr := strings.Split(path, "/")
-	return arr[len(arr)-1]
+	array := strings.Split(path, "/")
+	return array[len(array)-1]
 }

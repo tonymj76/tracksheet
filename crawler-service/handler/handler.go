@@ -49,40 +49,40 @@ func NewConnect(logger *logrus.Logger, urlPath, accept, userAgent string) *Conne
 }
 
 // Search url and return result
-func (c *Connection) Search() ReturnList {
-	parseURL, err := url.Parse(c.urlLink)
+func (connection *Connection) Search() ReturnList {
+	parseURL, err := url.Parse(connection.urlLink)
 	if err != nil {
-		c.Logger.WithError(err).Fatalln("make sure you entered a valid URL ")
+		connection.Logger.WithError(err).Fatalln("make sure you entered a valid URL ")
 	}
 	defer recoverMe()
 
-	switch filepath.Ext(c.urlLink) {
+	switch filepath.Ext(connection.urlLink) {
 	case ".gz":
 		// check if the url is a .gz file
-		result, err := c.readDotGZFile(c.urlLink, parseURL.Hostname())
+		result, err := connection.readDotGZFile(connection.urlLink, parseURL.Hostname())
 		return ReturnList{
 			List:  result,
 			Error: err,
 		}
 	case ".xml":
 		// check if the url is a xml file
-		result, err := c.retrieve(c.urlLink, parseURL.Hostname())
+		result, err := connection.retrieve(connection.urlLink, parseURL.Hostname())
 		return ReturnList{
 			List:  result,
 			Error: err,
 		}
 	default:
 		// normal urls and append robots to the url path
-		resp, err := GoClient(fmt.Sprintf(RobotsURL, parseURL.Scheme, parseURL.Hostname()), c)
+		response, err := GoClient(fmt.Sprintf(RobotsURL, parseURL.Scheme, parseURL.Hostname()), connection)
 		if err != nil {
-			c.Logger.WithError(err).Fatalln("failed to get response")
+			connection.Logger.WithError(err).Fatalln("failed to get response")
 		}
-		byteReader, err := ioutil.ReadAll(resp.Body)
+		byteReader, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			c.Logger.WithError(err).Fatalln("failed to read byte")
+			connection.Logger.WithError(err).Fatalln("failed to read byte")
 		}
 		siteMap := getSiteMapURL(string(byteReader))
-		result, err := c.retrieve(siteMap, parseURL.Hostname())
+		result, err := connection.retrieve(siteMap, parseURL.Hostname())
 		return ReturnList{
 			List:  result,
 			Error: err,
@@ -124,34 +124,34 @@ func parseSiteMapURL(matchString, host string) (validLink []string) {
 }
 
 // retrieve performs a HTTP Get request for the sitemap xml and decodes the results
-func (c *Connection) retrieve(siteMap, host string) ([]string, error) {
-	resp, err := GoClient(siteMap, c)
+func (connection *Connection) retrieve(siteMap, host string) ([]string, error) {
+	resp, err := GoClient(siteMap, connection)
 	if err != nil {
-		c.Logger.WithError(err).Fatalln("failed to get response")
+		connection.Logger.WithError(err).Fatalln("failed to get response")
 	}
 	byteReader, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		c.Logger.WithError(err).Fatalln("failed to read byte")
+		connection.Logger.WithError(err).Fatalln("failed to read byte")
 	}
 	return parseSiteMapURL(string(byteReader), host), nil
 }
 
 // readDotGZFile performs a HTTP Get request for the zipped xml and decodes the results
-func (c *Connection) readDotGZFile(gzfile, host string) ([]string, error) {
-	resp, err := GoClient(gzfile, c)
+func (connection *Connection) readDotGZFile(gzfile, host string) ([]string, error) {
+	resp, err := GoClient(gzfile, connection)
 	if err != nil {
-		c.Logger.WithError(err).Fatalln("failed to get response")
+		connection.Logger.WithError(err).Fatalln("failed to get response")
 	}
 	reader, err := gzip.NewReader(resp.Body)
 	if err != nil {
-		c.Logger.WithError(err).Fatalln("failed to unzip gz file")
+		connection.Logger.WithError(err).Fatalln("failed to unzip gz file")
 	}
 	byteReader, err := ioutil.ReadAll(reader)
 	return parseSiteMapURL(string(byteReader), host), err
 }
 
 // GoClient to make http request and set brower header
-func GoClient(urlPath string, c *Connection) (*http.Response, error) {
+func GoClient(urlPath string, connection *Connection) (*http.Response, error) {
 	var client http.Client
 	httpProxy := config.GetEnv("HTTP_PROXY")
 	if httpProxy != "" {
@@ -164,12 +164,12 @@ func GoClient(urlPath string, c *Connection) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Accept", c.accept)
-	req.Header.Add("User-Agent", c.userAgent)
+	req.Header.Add("Accept", connection.accept)
+	req.Header.Add("User-Agent", connection.userAgent)
 	req.Header.Add("Accept-Charset", "utf8")
-	resp, err := client.Do(req)
-	if resp.StatusCode != 200 {
-		c.Logger.Println(resp.Status)
+	response, err := client.Do(req)
+	if response.StatusCode != 200 {
+		connection.Logger.Println(response.Status)
 	}
-	return resp, err
+	return response, err
 }

@@ -18,9 +18,9 @@ func main() {
 	db.CreateDBConnection()
 	cron_job()
 	// rest api config
-	r := gin.Default()
+	ginConfig := gin.Default()
 
-	crawler := r.Group("/crawler")
+	crawler := ginConfig.Group("/crawler")
 
 	{
 		crawler.GET("/scrap", controller.CrawlerGetController)
@@ -34,15 +34,15 @@ func main() {
 		crawler.GET("/domain/:id", controller.GetRootUrlById)
 	}
 
-	r.Run(config.GetEnv("PORT"))
+	ginConfig.Run(config.GetEnv("PORT"))
 }
 
 func cron_job() {
 	// cron job to clean cache every 24 hours
-	c := cron.New()
-	c.AddFunc("@daily", func() {
+	cron_instance := cron.New()
+	cron_instance.AddFunc("@daily", func() {
 		log.Println("running daily job")
 		os.RemoveAll("cache/")
 	})
-	c.Start()
+	cron_instance.Start()
 }

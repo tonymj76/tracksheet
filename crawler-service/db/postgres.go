@@ -44,14 +44,14 @@ func CreateDBConnection() {
 }
 
 // pagination hook
-func Paginate(r *gin.Context) func(db *gorm.DB) *gorm.DB {
+func Paginate(context *gin.Context) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		page, _ := strconv.Atoi(r.DefaultQuery("page", "0"))
+		page, _ := strconv.Atoi(context.DefaultQuery("page", "0"))
 		if page == 0 {
 			page = 1
 		}
 
-		pageSize, _ := strconv.Atoi(r.DefaultQuery("limit", "100"))
+		pageSize, _ := strconv.Atoi(context.DefaultQuery("limit", "100"))
 		switch {
 		case pageSize > 100:
 			pageSize = 100

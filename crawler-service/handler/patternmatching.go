@@ -24,7 +24,7 @@ func getallurls(link string, depth int) ([]string, error) {
 		logrus.WithError(err).Fatalln("Error parsing URL")
 	}
 
-	c := colly.NewCollector(
+	collyInstance := colly.NewCollector(
 		colly.MaxDepth(depth),
 		colly.Async(true),
 		colly.UserAgent(config.GetEnv("userAgent")),
@@ -35,24 +35,24 @@ func getallurls(link string, depth int) ([]string, error) {
 		// Cache responses to prevent multiple download of pages
 		colly.CacheDir("./cache"),
 	)
-	c.IgnoreRobotsTxt = true
+	collyInstance.IgnoreRobotsTxt = true
 	// number of go routines.
-	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 6, RandomDelay: 10 * time.Second})
+	collyInstance.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 6, RandomDelay: 10 * time.Second})
 
 	// Find and visit all links
-	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
+	collyInstance.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		e.Request.Visit(e.Attr("href"))
 	})
-	c.OnError(func(_ *colly.Response, err error) {
+	collyInstance.OnError(func(_ *colly.Response, err error) {
 		fmt.Println("error encoutered ", err)
 	})
-	c.OnRequest(func(r *colly.Request) {
+	collyInstance.OnRequest(func(r *colly.Request) {
 		links = append(links, r.URL.String())
 	})
 
-	err = c.Visit(link)
+	err = collyInstance.Visit(link)
 
-	c.Wait()
+	collyInstance.Wait()
 
 	list := removeDuplicateValues(links)
 	return list, err
