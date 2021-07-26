@@ -68,10 +68,12 @@ This would return a list of all url items in the DB
 * limit (table limit)
 * k (the search string)
 
+8. To get root url by id GET `/crawler/domain/:id` pass in the ID as a parameter
+
 
 Note: This option should only be used when there is a visible pattern in product url eg site.com/prd/123 and site.com/prd/345
 
-8. To manually provide product url example POST `crawler/scrap`, pass in the following body
+9. To manually provide product url example POST `crawler/scrap`, pass in the following body
 
 ```
 { 
