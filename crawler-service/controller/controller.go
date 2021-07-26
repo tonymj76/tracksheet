@@ -37,7 +37,7 @@ func CrawlerGetController(c *gin.Context) {
 	if links.Error != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": err})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "root_url": link})
+		c.JSON(http.StatusOK, gin.H{"success": true, "data": links.List, "root_url": link})
 		// after responsing with json, run db update in the background
 		urlModel := db.RootUrl{Name: &link}
 		items := &db.Context{URL: urlModel, ProductList: links}
@@ -68,7 +68,7 @@ func CrawlerPostController(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "error": links.Error})
 	} else {
 		//truncate list to avoid browser throwing error of too much payload
-		c.JSON(http.StatusOK, gin.H{"success": true, "links": links.List, "root_url": input.Link})
+		c.JSON(http.StatusOK, gin.H{"success": true, "data": links.List, "root_url": input.Link})
 		// after responsing with json, run db update in the background
 		urlModel := db.RootUrl{Name: &input.Link}
 		items := &db.Context{URL: urlModel, ProductList: links}
@@ -76,7 +76,7 @@ func CrawlerPostController(c *gin.Context) {
 	}
 }
 
-func GetUrlModel(c *gin.Context) {
+func GetRootUrlModel(c *gin.Context) {
 	// get all items from url model
 	var urls []db.RootUrl
 	var count int64
@@ -84,6 +84,16 @@ func GetUrlModel(c *gin.Context) {
 	db.DB.Scopes(db.Paginate(c)).Find(&urls).Count(&count)
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "root_url": urls, "total": count})
+}
+
+func GetRootUrlById(c *gin.Context) {
+	var root_url db.RootUrl
+	if err := db.DB.Where("id = ?", c.Param("id")).First(&root_url).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "root_url": root_url})
 }
 
 func GetProductUrl(c *gin.Context) {

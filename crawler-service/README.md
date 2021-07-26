@@ -36,7 +36,7 @@ eg
 * link (link of site to crawl)
 * depth (use if using recursive depth search method); an int value. The more the depth, the more itemsretrieved
 
-2.To get all urls in DB GET `/crawler/domain` pass the following queries
+2.To get all urls in DB GET `/crawler/domains` pass the following queries
 
 * page (table page)
 *limit (table limit)
@@ -56,7 +56,7 @@ This would return a list of all url items in the DB
 
 * link (url link to delete)
 
-6.To search for a url GET `/crawler/searchdomain` pass the following queries
+6.To search for a url GET `/crawler/searchdomains` pass the following queries
 
 * page (table page)
 * limit (table limit)

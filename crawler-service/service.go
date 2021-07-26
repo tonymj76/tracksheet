@@ -24,13 +24,14 @@ func main() {
 
 	{
 		crawler.GET("/scrap", controller.CrawlerGetController)
-		crawler.GET("/domain", controller.GetUrlModel)
+		crawler.GET("/domains", controller.GetRootUrlModel)
 		crawler.GET("/product", controller.GetProductUrl)
 		crawler.GET("/productdelete", controller.DeleteProductUrl)
 		crawler.GET("/urldelete", controller.DeleteUrlDetails)
-		crawler.GET("/searchdomain", controller.SeachUrl)
+		crawler.GET("/searchdomains", controller.SeachUrl)
 		crawler.GET("/searchproduct", controller.SearchProduct)
 		crawler.POST("/scrap", controller.CrawlerPostController)
+		crawler.GET("/domain/:id", controller.GetRootUrlById)
 	}
 
 	r.Run(config.GetEnv("PORT"))
