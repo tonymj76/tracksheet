@@ -72,7 +72,7 @@ func GetUrl(link string, depth int) ReturnList {
 		colly.IgnoreRobotsTxt(),
 		colly.DisallowedURLFilters(
 			// don't scap any url with the following keywords
-			regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>(?i)Career|deal|help|Sitemap|blog|policy|CheckOut|content|account|login|contact|faq|privacy-policy|about|customer|pages|cart|search[^\s]*)`, base.Hostname())),
+			regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>(?i)Career|deal|help|Sitemap|blog|policy|CheckOut|content|account|login|contact|faq|privacy-policy|about|productsearch|customer|pages|cart|search[^\s]*)`, base.Hostname())),
 			// don't scap image or png from the url
 			regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.jpeg$)|(?P<path2>[^\s]*\.jpg$)|(?P<path2>[^\s]*\.png$)`),
 		),
@@ -85,7 +85,7 @@ func GetUrl(link string, depth int) ReturnList {
 		colly.CacheDir("./cache"),
 	)
 	// number of go routines.
-	collyInstance.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 6, RandomDelay: 10 * time.Second})
+	collyInstance.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 3, RandomDelay: 10 * time.Second})
 
 	// Find and visit all links
 	collyInstance.OnHTML("a[href]", func(element *colly.HTMLElement) {
