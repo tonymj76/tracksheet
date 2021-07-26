@@ -36,33 +36,33 @@ eg
 * link (link of site to crawl)
 * depth (use if using recursive depth search method); an int value. The more the depth, the more itemsretrieved
 
-2.To get all urls in DB GET `/crawler/domains` pass the following queries
+2. To get all urls in DB GET `/crawler/domains` pass the following queries
 
 * page (table page)
 *limit (table limit)
 This would return a list of all url items in the DB
 
-3.To get the product url details of a url GET `/crawler/product` pass the following queries
+3. To get the product url details of a url GET `/crawler/product` pass the following queries
 
 * page (table page)
 * limit (table limit)
 * link (url item which you want to get their product)
 
-4.To delete a product url GET `crawler/productdelete` pass the following queries
+4. To delete a product url GET `crawler/productdelete` pass the following queries
 
 * link (product link you want to delete)
 
-5.To delete a url item, and all related  GET `/crawler/urldelete` pass the following queries
+5. To delete a url item, and all related  GET `/crawler/urldelete` pass the following queries
 
 * link (url link to delete)
 
-6.To search for a url GET `/crawler/searchdomains` pass the following queries
+6. To search for a url GET `/crawler/searchdomains` pass the following queries
 
 * page (table page)
 * limit (table limit)
 * k (the search string)
 
-7.To search for a product GET `/crawler/searchproduct` pass the following queries
+7. To search for a product GET `/crawler/searchproduct` pass the following queries
 
 * page (table page)
 * limit (table limit)
