@@ -67,7 +67,7 @@ func GetUrl(link string, depth int) ReturnList {
 
 	collyInstance := colly.NewCollector(
 		colly.MaxDepth(depth),
-		//colly.Async(true),
+		colly.Async(true),
 		colly.UserAgent(config.GetEnv("userAgent")),
 		colly.IgnoreRobotsTxt(),
 		colly.DisallowedURLFilters(

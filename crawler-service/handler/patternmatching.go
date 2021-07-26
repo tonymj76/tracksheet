@@ -40,14 +40,14 @@ func getallurls(link string, depth int) ([]string, error) {
 	collyInstance.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 6, RandomDelay: 10 * time.Second})
 
 	// Find and visit all links
-	collyInstance.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		e.Request.Visit(e.Attr("href"))
+	collyInstance.OnHTML("a[href]", func(element *colly.HTMLElement) {
+		element.Request.Visit(element.Attr("href"))
 	})
 	collyInstance.OnError(func(_ *colly.Response, err error) {
 		fmt.Println("error encoutered ", err)
 	})
-	collyInstance.OnRequest(func(r *colly.Request) {
-		links = append(links, r.URL.String())
+	collyInstance.OnRequest(func(request *colly.Request) {
+		links = append(links, request.URL.String())
 	})
 
 	err = collyInstance.Visit(link)
@@ -60,15 +60,15 @@ func getallurls(link string, depth int) ([]string, error) {
 
 //remove extra char from string and find common item
 func stringCompare(str1, str2, str3 string) []string {
-	array1 := regexp.MustCompile(`[\/\&\:\=\?\s]+`).Split(str1, -1)
-	array2 := regexp.MustCompile(`[\/\&\:\=\?\s]+`).Split(str2, -1)
-	array3 := regexp.MustCompile(`[\/\&\:\=\?\s]+`).Split(str3, -1)
+	str_array1 := regexp.MustCompile(`[\/\&\:\=\?\s]+`).Split(str1, -1)
+	str_array2 := regexp.MustCompile(`[\/\&\:\=\?\s]+`).Split(str2, -1)
+	str_array3 := regexp.MustCompile(`[\/\&\:\=\?\s]+`).Split(str3, -1)
 
 	common_item := []string{}
 
-	for _, val1 := range array1 {
-		for _, val2 := range array2 {
-			for _, val3 := range array3 {
+	for _, val1 := range str_array1 {
+		for _, val2 := range str_array2 {
+			for _, val3 := range str_array3 {
 				if val1 == val2 && val2 == val3 {
 					common_item = append(common_item, val2)
 				}
