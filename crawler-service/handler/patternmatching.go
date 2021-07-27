@@ -66,11 +66,11 @@ func stringCompare(str1, str2, str3 string) []string {
 
 	common_item := []string{}
 
-	for _, val1 := range str_array1 {
-		for _, val2 := range str_array2 {
-			for _, val3 := range str_array3 {
-				if val1 == val2 && val2 == val3 {
-					common_item = append(common_item, val2)
+	for _, value1 := range str_array1 {
+		for _, value2 := range str_array2 {
+			for _, value3 := range str_array3 {
+				if value1 == value2 && value2 == value3 {
+					common_item = append(common_item, value2)
 				}
 			}
 		}

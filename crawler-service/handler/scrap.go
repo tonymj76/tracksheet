@@ -92,7 +92,9 @@ func GetUrl(link string, depth int) ReturnList {
 		//resolve url if item domain is not the same as base domain, link is unrelated. skip
 		item_domain := fmt.Sprintf("%s://%s", request.URL.Scheme, request.URL.Host)
 		if item_domain == base_domain {
-			links = append(links, request.URL.String())
+			if !strings.Contains(request.URL.String(), "productsearch") {
+				links = append(links, request.URL.String())
+			}
 		}
 	})
 
