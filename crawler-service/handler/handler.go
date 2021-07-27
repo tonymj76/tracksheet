@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -101,26 +100,9 @@ func getSiteMapURL(matchString string) (value string) {
 }
 
 // parseSiteMapURL retrieves all the url links from the html body
-func parseSiteMapURL(matchString, host string) (validLink []string) {
+func parseSiteMapURL(matchString, host string) []string {
 	validString := regexp.MustCompile(fmt.Sprintf(HTMLLinkPattern, host))
-	for _, link := range validString.FindAllString(matchString, -1) {
-		path, err := url.Parse(link)
-		if err != nil {
-			log.Fatalln("error while parsing link as url", err)
-			return
-		}
-		// filter out static assets
-		extension := strings.Split(path.Path, ".")
-		if len(extension) > 1 {
-			if strings.Contains(extension[1], "html") || strings.Contains(extension[1], "php") ||
-				strings.Contains(extension[1], "phtml") || strings.Contains(extension[1], "htm") {
-				validLink = append(validLink, link)
-			}
-		} else {
-			validLink = append(validLink, link)
-		}
-	}
-	return
+	return validString.FindAllString(matchString, -1)
 }
 
 // retrieve performs a HTTP Get request for the sitemap xml and decodes the results
