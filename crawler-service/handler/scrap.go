@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/url"
+
 	"regexp"
 	"strings"
 	"time"
@@ -50,6 +51,9 @@ func keywords(attr string, dom *goquery.Selection) bool {
 // GetUrl given the url and depth, recursively get all related url of the site
 func GetUrl(link string, depth int) ReturnList {
 	link = urlResolver(link)
+
+	//create link in db
+
 	links := []string{}
 	base, err := url.Parse(link)
 	if err != nil {
