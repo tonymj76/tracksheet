@@ -20,17 +20,10 @@ type ReturnList struct {
 	Error error
 }
 
-const PricePattern = `\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})`
-
-// checkImgPrice check for price and if the anchor tag has img
-func checkImgPrice(a string, b *goquery.Selection) bool {
-	regex := regexp.MustCompile(PricePattern)
-	_, found := b.Find("img").Attr("src")
-	html, _ := b.Html()
-	if regex.MatchString(html) && found {
-		return true
-	}
-	return false
+// check if link contains an image
+func checkImg(element string, dom *goquery.Selection) bool {
+	_, found := dom.Find("img").Attr("src")
+	return found
 }
 
 //urlResolver add www. if the url don't have it
@@ -72,7 +65,7 @@ func GetUrl(link string, depth int) ReturnList {
 		colly.IgnoreRobotsTxt(),
 		colly.DisallowedURLFilters(
 			// don't scap any url with the following keywords
-			regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>(?i)Career|deal|help|Sitemap|blog|policy|CheckOut|content|account|login|contact|faq|privacy-policy|about|customer|pages|cart|search[^\s]*)`, base.Hostname())),
+			regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>(?i)Career|coupons|deal|help|Sitemap|blog|policy|CheckOut|content|account|login|contact|faq|privacy-policy|about|customer|pages|cart|search[^\s]*)`, base.Hostname())),
 			// don't scap image or png from the url
 			regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.jpeg$)|(?P<path2>[^\s]*\.jpg$)|(?P<path2>[^\s]*\.png$)`),
 		),
@@ -90,7 +83,7 @@ func GetUrl(link string, depth int) ReturnList {
 	// Find and visit all links
 	collyInstance.OnHTML("a[href]", func(element *colly.HTMLElement) {
 		dom := element.DOM
-		if keywords(element.Attr("href"), dom) || checkImgPrice(element.Attr("href"), dom) {
+		if keywords(element.Attr("href"), dom) || checkImg(element.Attr("href"), dom) {
 			element.Request.Visit(element.Attr("href"))
 		}
 	})
