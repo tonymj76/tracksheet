@@ -20,17 +20,10 @@ type ReturnList struct {
 	Error error
 }
 
-const PricePattern = `\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})`
-
-// checkImgPrice check for price and if the anchor tag has img
-func checkImgPrice(a string, b *goquery.Selection) bool {
-	re := regexp.MustCompile(PricePattern)
-	_, found := b.Find("img").Attr("src")
-	html, _ := b.Html()
-	if re.MatchString(html) && found {
-		return true
-	}
-	return false
+// check if link contains an image
+func checkImg(element string, dom *goquery.Selection) bool {
+	_, found := dom.Find("img").Attr("src")
+	return found
 }
 
 //urlResolver add www. if the url don't have it
@@ -43,10 +36,10 @@ func urlResolver(link string) string {
 }
 
 // keywords check for certain keywords in the dom eg like `buy now`
-func keywords(a string, b *goquery.Selection) bool {
-	kwords := []string{"price", "add to cart", "quantity", "rating", "save", "buy it now", "buy now", "cart", "buy"}
-	html, _ := b.Html()
-	for _, keys := range kwords {
+func keywords(attr string, dom *goquery.Selection) bool {
+	keywords := []string{"price", "add to cart", "quantity", "rating", "save", "buy it now", "buy now", "cart", "buy"}
+	html, _ := dom.Html()
+	for _, keys := range keywords {
 		if strings.Contains(strings.ToLower(html), keys) {
 			return true
 		}
@@ -65,14 +58,14 @@ func GetUrl(link string, depth int) ReturnList {
 	//get base domain
 	base_domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
 
-	c := colly.NewCollector(
+	collyInstance := colly.NewCollector(
 		colly.MaxDepth(depth),
 		colly.Async(true),
 		colly.UserAgent(config.GetEnv("userAgent")),
 		colly.IgnoreRobotsTxt(),
 		colly.DisallowedURLFilters(
 			// don't scap any url with the following keywords
-			regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>(?i)Career|deal|help|Sitemap|blog|policy|CheckOut|content|account|login|contact|faq|privacy-policy|about|customer|pages|cart|search[^\s]*)`, base.Hostname())),
+			regexp.MustCompile(fmt.Sprintf(`(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>(?i)Career|coupons|deal|help|Sitemap|blog|policy|CheckOut|content|account|login|contact|faq|privacy-policy|about|customer|pages|cart|search[^\s]*)`, base.Hostname())),
 			// don't scap image or png from the url
 			regexp.MustCompile(`(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.jpeg$)|(?P<path2>[^\s]*\.jpg$)|(?P<path2>[^\s]*\.png$)`),
 		),
@@ -85,26 +78,28 @@ func GetUrl(link string, depth int) ReturnList {
 		colly.CacheDir("./cache"),
 	)
 	// number of go routines.
-	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 6, RandomDelay: 10 * time.Second})
+	collyInstance.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 3, RandomDelay: 10 * time.Second})
 
 	// Find and visit all links
-	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		dom := e.DOM
-		if keywords(e.Attr("href"), dom) || checkImgPrice(e.Attr("href"), dom) {
-			e.Request.Visit(e.Attr("href"))
+	collyInstance.OnHTML("a[href]", func(element *colly.HTMLElement) {
+		dom := element.DOM
+		if keywords(element.Attr("href"), dom) || checkImg(element.Attr("href"), dom) {
+			element.Request.Visit(element.Attr("href"))
 		}
 	})
 
-	c.OnRequest(func(r *colly.Request) {
+	collyInstance.OnRequest(func(request *colly.Request) {
 		//resolve url if item domain is not the same as base domain, link is unrelated. skip
-		item_domain := fmt.Sprintf("%s://%s", r.URL.Scheme, r.URL.Host)
+		item_domain := fmt.Sprintf("%s://%s", request.URL.Scheme, request.URL.Host)
 		if item_domain == base_domain {
-			links = append(links, r.URL.String())
+			if !strings.Contains(request.URL.String(), "productsearch") {
+				links = append(links, request.URL.String())
+			}
 		}
 	})
 
-	err = c.Visit(link)
-	c.Wait()
+	err = collyInstance.Visit(link)
+	collyInstance.Wait()
 	//group links
 	list := removeDuplicateValues(links)
 	return ReturnList{

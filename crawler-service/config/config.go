@@ -8,7 +8,7 @@ import (
 
 type configData map[string]string
 
-var jsonData *configData
+var configJsonData *configData
 
 // LoadConfigFromJSON loads JSON config data
 func LoadConfigFromJSON() {
@@ -20,7 +20,7 @@ func LoadConfigFromJSON() {
 	}
 
 	data := configData{}
-	jsonData = &data
+	configJsonData = &data
 
 	if json.Unmarshal(envFile, &data) != nil {
 		log.Fatalf("\nUnable to parse JSON\n%v", err)
@@ -30,11 +30,11 @@ func LoadConfigFromJSON() {
 // GetEnv returns config value of the key.
 // It returns an empty string if the key is not present
 func GetEnv(key string) string {
-	if jsonData == nil {
+	if configJsonData == nil {
 		LoadConfigFromJSON()
 	}
 
-	if value, exists := (*jsonData)[key]; exists {
+	if value, exists := (*configJsonData)[key]; exists {
 		return value
 	}
 
