@@ -37,11 +37,10 @@ func CrawlerGetController(context *gin.Context) {
 	if links.Error != nil {
 		context.JSON(http.StatusOK, gin.H{"success": false, "error": err})
 	} else {
-		context.JSON(http.StatusOK, gin.H{"success": true, "data": links.List, "root_url": link})
+		context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
 		// after responsing with json, run db update in the background
-		urlModel := db.RootUrl{Name: &link}
-		items := &db.Context{URL: urlModel, ProductList: links}
-		db.SaveToDB(items)
+		// items := &db.Context{ProductList: links.List}
+		// db.SaveToDB(items)
 	}
 }
 
@@ -68,77 +67,11 @@ func CrawlerPostController(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{"success": false, "error": links.Error})
 	} else {
 		//truncate list to avoid browser throwing error of too much payload
-		context.JSON(http.StatusOK, gin.H{"success": true, "data": links.List, "root_url": input.Link})
+		context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
 		// after responsing with json, run db update in the background
-		urlModel := db.RootUrl{Name: &input.Link}
-		items := &db.Context{URL: urlModel, ProductList: links}
-		db.SaveToDB(items)
+		// items := &db.Context{ProductList: links.List}
+		// db.SaveToDB(items)
 	}
-}
-
-func GetRootUrlModel(context *gin.Context) {
-	// get all items from url model
-	var urls []db.RootUrl
-	var count int64
-
-	db.DB.Scopes(db.Paginate(context)).Find(&urls).Count(&count)
-
-	context.JSON(http.StatusOK, gin.H{"success": true, "root_url": urls, "total": count})
-}
-
-func GetRootUrlById(context *gin.Context) {
-	var root_url db.RootUrl
-	if err := db.DB.Where("id = ?", context.Param("id")).First(&root_url).Error; err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
-		return
-	}
-
-	context.JSON(http.StatusOK, gin.H{"success": true, "root_url": root_url})
-}
-
-func GetProductUrl(context *gin.Context) {
-	var url_detail db.RootUrl
-	var product_url []db.URLProductLink
-	var count int64
-
-	url := context.Query("link")
-	if url == "" {
-		fmt.Println("Please provide a url in query")
-		return
-	}
-
-	if err := db.DB.Where("name = ?", url).First(&url_detail).Error; err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
-		return
-	}
-
-	db.DB.Scopes(db.Paginate(context)).Where("root_url_id = ?", url_detail.ID).Find(&product_url).Count(&count)
-
-	context.JSON(http.StatusOK,
-		gin.H{
-			"success":  true,
-			"root_url": url_detail,
-			"product":  product_url,
-			"total":    count,
-		})
-}
-
-func DeleteUrlDetails(context *gin.Context) {
-	var url_detail db.RootUrl
-	url := context.Query("link")
-	if url == "" {
-		fmt.Println("Please provide a url in query")
-		return
-	}
-
-	if err := db.DB.Where("name = ?", url).First(&url_detail).Error; err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
-		return
-	}
-	context.JSON(http.StatusOK, gin.H{"success": true, "message": "item deleted successfully"})
-
-	items := &db.Context{URL: url_detail}
-	db.DeleteID(items)
 }
 
 func DeleteProductUrl(context *gin.Context) {
@@ -157,25 +90,6 @@ func DeleteProductUrl(context *gin.Context) {
 
 	db.DB.Delete(&product_url)
 	context.JSON(http.StatusOK, gin.H{"success": true, "message": "item deleted successfully"})
-}
-
-func SeachUrl(context *gin.Context) {
-	var url_detail []db.RootUrl
-	k := context.Query("k")
-	var count int64
-	if k == "" {
-		fmt.Println("Please provide a search string")
-		return
-	}
-	search := fmt.Sprintf("%%%s%%", k)
-	db.DB.Scopes(db.Paginate(context)).Where("name LIKE ?", search).Find(&url_detail).Count(&count)
-
-	context.JSON(http.StatusOK,
-		gin.H{
-			"success":  true,
-			"root_url": url_detail,
-			"total":    count,
-		})
 }
 
 func SearchProduct(context *gin.Context) {

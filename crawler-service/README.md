@@ -31,44 +31,30 @@ eg
 
 ### Accessing end points
 
-1. To access the crawl service access the end point GET `/crawler/scrap`, pass the following as queries
+To access the crawl service access the end point GET `/crawler/scrap`, pass the following as queries
 
 * link (link of site to crawl)
 * depth (use if using recursive depth search method); an int value. The more the depth, the more itemsretrieved
 
-2. To get all urls in DB GET `/crawler/domains` pass the following queries
 
-* page (table page)
-*limit (table limit)
-This would return a list of all url items in the DB
 
-3. To get the product url details of a url GET `/crawler/product` pass the following queries
+To get the product url details of a url GET `/crawler/product` pass the following queries
 
 * page (table page)
 * limit (table limit)
 * link (url item which you want to get their product)
 
-4. To delete a product url GET `crawler/productdelete` pass the following queries
+To delete a product url GET `crawler/productdelete` pass the following queries
 
 * link (product link you want to delete)
 
-5. To delete a url item, and all related  GET `/crawler/urldelete` pass the following queries
 
-* link (url link to delete)
-
-6. To search for a url GET `/crawler/searchdomains` pass the following queries
+To search for a product GET `/crawler/searchproduct` pass the following queries
 
 * page (table page)
 * limit (table limit)
 * k (the search string)
 
-7. To search for a product GET `/crawler/searchproduct` pass the following queries
-
-* page (table page)
-* limit (table limit)
-* k (the search string)
-
-8. To get root url by id GET `/crawler/domain/:id` pass in the ID as a parameter
 
 
 Note: This option should only be used when there is a visible pattern in product url eg site.com/prd/123 and site.com/prd/345

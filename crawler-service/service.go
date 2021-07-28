@@ -24,14 +24,9 @@ func main() {
 
 	{
 		crawler.GET("/scrap", controller.CrawlerGetController)
-		crawler.GET("/domains", controller.GetRootUrlModel)
-		crawler.GET("/product", controller.GetProductUrl)
 		crawler.GET("/productdelete", controller.DeleteProductUrl)
-		crawler.GET("/urldelete", controller.DeleteUrlDetails)
-		crawler.GET("/searchdomains", controller.SeachUrl)
 		crawler.GET("/searchproduct", controller.SearchProduct)
 		crawler.POST("/scrap", controller.CrawlerPostController)
-		crawler.GET("/domain/:id", controller.GetRootUrlById)
 	}
 
 	ginConfig.Run(config.GetEnv("PORT"))

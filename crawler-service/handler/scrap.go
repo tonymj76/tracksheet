@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cache_service/crawler-service/config"
+	"cache_service/crawler-service/db"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
@@ -96,8 +97,9 @@ func GetUrl(link string, depth int) ReturnList {
 		//resolve url if item domain is not the same as base domain, link is unrelated. skip
 		item_domain := fmt.Sprintf("%s://%s", request.URL.Scheme, request.URL.Host)
 		if item_domain == base_domain {
-			if !strings.Contains(request.URL.String(), "productsearch") {
-				links = append(links, request.URL.String())
+			if !strings.Contains(request.URL.String(), "search") {
+				db.SaveToDB(request.URL.String())
+				//	links = append(links, request.URL.String())
 			}
 		}
 	})
