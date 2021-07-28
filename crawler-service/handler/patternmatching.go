@@ -9,6 +9,8 @@ import (
 
 	"time"
 
+	"cache_service/crawler-service/db"
+
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
 )
@@ -47,7 +49,7 @@ func getallurls(link string, depth int) ([]string, error) {
 		fmt.Println("error encoutered ", err)
 	})
 	collyInstance.OnRequest(func(request *colly.Request) {
-		links = append(links, request.URL.String())
+		db.SaveToDB(request.URL.String())
 	})
 
 	err = collyInstance.Visit(link)

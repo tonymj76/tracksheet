@@ -83,7 +83,7 @@ func GetUrl(link string, depth int) ReturnList {
 		colly.CacheDir("./cache"),
 	)
 	// number of go routines.
-	collyInstance.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 3, RandomDelay: 10 * time.Second})
+	collyInstance.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 6, RandomDelay: 10 * time.Second})
 
 	// Find and visit all links
 	collyInstance.OnHTML("a[href]", func(element *colly.HTMLElement) {
@@ -99,7 +99,6 @@ func GetUrl(link string, depth int) ReturnList {
 		if item_domain == base_domain {
 			if !strings.Contains(request.URL.String(), "search") {
 				db.SaveToDB(request.URL.String())
-				//	links = append(links, request.URL.String())
 			}
 		}
 	})
