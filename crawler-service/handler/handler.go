@@ -47,6 +47,12 @@ func NewConnect(logger *logrus.Logger, urlPath, accept, userAgent string) *Conne
 	}
 }
 
+type ReturnList struct {
+	// List of the product details
+	List  []string
+	Error error
+}
+
 // Search url and return result
 func (connection *Connection) Search() ReturnList {
 	parseURL, err := url.Parse(connection.urlLink)

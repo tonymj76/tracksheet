@@ -1,10 +1,4 @@
-package main
-
-//// visit with same base
-
-// line 73 keywords
-// css, jpg, png, .ico, .pdf
-// css, js, png, jpeg, jpg, tiff, icon, ico, js, pdf, docx, doc
+package handler
 
 import (
 	"context"
@@ -15,7 +9,12 @@ import (
 	"sync"
 	"time"
 
+	"cache_service/crawler-service/db"
+
+	"cache_service/crawler-service/config"
+
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/proto"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,7 +34,7 @@ var (
 	productMut *sync.RWMutex
 	allSiteMut *sync.RWMutex
 
-	wg *sync.WaitGroup
+	waitgroup *sync.WaitGroup
 
 	allSiteLink map[string]int
 	visited     map[string]struct{}
@@ -45,11 +44,6 @@ var (
 type crawlconfig struct {
 	website string
 	depth   int
-}
-
-type linksConfig struct {
-	crawlconfig
-	base *url.URL
 }
 
 var (
@@ -83,6 +77,8 @@ var (
 		"about":    none,
 		"customer": none,
 		"icon":     none,
+		"sign-up":  none,
+		"signup":   none,
 
 		".css":  none,
 		".js":   none,
@@ -97,7 +93,7 @@ var (
 	}
 )
 
-func isPossibleProductURL(el *rod.Element, href string) bool {
+func isPossibleProductURL(element *rod.Element, href string) bool {
 	// must not contain search in href
 	if strings.Contains(strings.ToLower(href), search) {
 		return false
@@ -109,7 +105,7 @@ func isPossibleProductURL(el *rod.Element, href string) bool {
 	}
 
 	// contains keyword text?
-	text, err := el.Text()
+	text, err := element.Text()
 	if err != nil {
 		// is text in keyword
 		_, ok := keywordSet[text]
@@ -119,7 +115,7 @@ func isPossibleProductURL(el *rod.Element, href string) bool {
 		}
 	}
 
-	children, err := el.Elements(childrenSelector)
+	children, err := element.Elements(childrenSelector)
 
 	if err == nil && len(children) > 0 {
 		// has image tag?
@@ -127,16 +123,17 @@ func isPossibleProductURL(el *rod.Element, href string) bool {
 			return true
 		}
 
+		//get the href in the children node and recursively visit those too
 		if len(children) > 0 {
 			for _, child := range children {
-				hr, err := child.Attribute(`href`)
+				href, err := child.Attribute(`href`)
 				if err != nil {
 					logrus.Warnln("unable to get href", err)
 					continue
 				}
 
-				if hr != nil {
-					if isPossibleProductURL(child, *hr) {
+				if href != nil {
+					if isPossibleProductURL(child, *href) {
 						return true
 					}
 				}
@@ -146,36 +143,42 @@ func isPossibleProductURL(el *rod.Element, href string) bool {
 	return false
 }
 
-func getLinks(base *url.URL, config crawlconfig) {
+func getLinks(base *url.URL, crawl_config crawlconfig) {
+	//create a rod instance with user agent
 	page := rod.New().MustConnect().MustPage(base.String())
 	defer page.Close()
 
+	userAgentHeaderOverride := proto.NetworkSetUserAgentOverride{
+		UserAgent: config.GetEnv("userAgent"),
+	}
+	page.SetUserAgent(&userAgentHeaderOverride)
 	// timeout
 	page.Timeout(1 * time.Minute)
+	//wait for page load
 	page.MustWaitLoad()
 
 	allLinks := page.MustElements(linksSelector)
 
+	//iterate all items in the link list
 	for _, link := range allLinks {
 
-		hr, err := link.Attribute(`href`)
+		href, err := link.Attribute(`href`)
 		if err != nil {
 			logrus.Warnln("UNABLE TO GET HREF ", err)
 			continue
 		}
 
-		l, err := url.Parse(strings.TrimSpace(*hr))
+		parsed_url, err := url.Parse(strings.TrimSpace(*href))
 		if err != nil {
-			logrus.Warnf("unable to parse link:%s\n%v", *hr, err)
+			logrus.Warnf("unable to parse link:%s\n%v", *href, err)
 			continue
 		}
 
-		resolvedURL := base.ResolveReference(l)
+		resolvedURL := base.ResolveReference(parsed_url)
 		resolvedURLString := resolvedURL.String()
 
 		// skip if not same hostname
 		if base.Hostname() != resolvedURL.Hostname() {
-			fmt.Println("not equal", resolvedURLString)
 			continue
 		}
 
@@ -183,7 +186,6 @@ func getLinks(base *url.URL, config crawlconfig) {
 		inSkipSet := false
 		for key := range skipSet {
 			if strings.Contains(resolvedURL.RequestURI(), key) {
-				fmt.Println("skipping", resolvedURLString)
 				inSkipSet = true
 				break
 			}
@@ -193,93 +195,78 @@ func getLinks(base *url.URL, config crawlconfig) {
 
 			// write
 			allSiteMut.Lock()
-			allSiteLink[resolvedURLString] = config.depth - 1
+			allSiteLink[resolvedURLString] = crawl_config.depth - 1
 			allSiteMut.Unlock()
 
 			// check if it's product URL
 			possible := isPossibleProductURL(link, resolvedURLString)
 
 			if possible {
-				// add it to link
-				productMut.RLock()
-				_, ok := productLink[resolvedURLString]
-				productMut.RUnlock()
-
-				if !ok {
-					logrus.Infoln("product link: ", resolvedURL, len(productLink))
-					productMut.Lock()
-					productLink[resolvedURLString] = none
-					productMut.Unlock()
-				}
+				productMut.Lock()
+				db.SaveToDB(resolvedURLString)
+				productMut.Unlock()
 			}
 		}
 
 	}
 }
 
-func getAllLinksOnPage(config crawlconfig) {
-	// logrus.Printf("getting: %s\n", config.website)
+func getAllLinksOnPage(crawl_config crawlconfig) {
 
-	config.website = strings.TrimSpace(config.website)
+	crawl_config.website = strings.TrimSpace(crawl_config.website)
 
 	// visited?
 	visitMut.RLock()
-	_, ok := visited[config.website]
+	_, ok := visited[crawl_config.website]
 	visitMut.RUnlock()
 
-	if !ok && config.depth >= 0 {
+	if !ok && crawl_config.depth >= 0 {
 		// mark visited
 		visitMut.Lock()
-		visited[config.website] = none
+		visited[crawl_config.website] = none
 		visitMut.Unlock()
 
-		base, err := url.Parse(config.website)
+		base, err := url.Parse(crawl_config.website)
 		if err != nil {
-			logrus.Warnf("unable to parse website: %s\n%v", config.website, err)
+			logrus.Warnf("unable to parse website: %s\n%v", crawl_config.website, err)
 			return
 		}
 
 		tryError := rod.Try(func() {
-			getLinks(base, config)
+			getLinks(base, crawl_config)
 		})
 
 		if errors.Is(tryError, context.DeadlineExceeded) {
 			// code for timeout error
-			logrus.Errorf("TIMEOUT ON %s", config.website, tryError)
+			logrus.Errorf("TIMEOUT ON %s", crawl_config.website, tryError)
 		} else if tryError != nil {
 			// code for other types of error
-			logrus.Errorf("ERROR ON %s", config.website, tryError)
+			logrus.Errorf("ERROR ON %s", crawl_config.website, tryError)
 		}
 	}
 
-	wg.Done()
+	waitgroup.Done()
 }
 
-func main() {
-	website := "https://www.vitacost.com/"
-	// website := "https://www.cdw.ca/"
+func GetUrl(website string, depth, worker int) {
+	numWorkers := worker
 
-	const numWorkers = 10
-
-	wg = &sync.WaitGroup{}
+	waitgroup = &sync.WaitGroup{}
 
 	visitMut = &sync.RWMutex{}
 	productMut = &sync.RWMutex{}
 	allSiteMut = &sync.RWMutex{}
 
-	config := crawlconfig{website: website, depth: 1}
+	config := crawlconfig{website: website, depth: depth}
 
 	allSiteLink = map[string]int{}
 	visited = map[string]struct{}{}
 	productLink = map[string]struct{}{}
 
 	// get root urls
-	wg.Add(1)
+	waitgroup.Add(1)
 	go getAllLinksOnPage(config)
-	wg.Wait()
-
-	fmt.Println("links #", len(allSiteLink))
-	fmt.Println("visited #", len(visited))
+	waitgroup.Wait()
 
 	type kvPair struct {
 		key   string
@@ -307,15 +294,15 @@ func main() {
 			delete(allSiteLink, keys[i].key)
 
 			newConfig := crawlconfig{website: keys[i].key, depth: keys[i].depth}
-			wg.Add(1)
+			waitgroup.Add(1)
 			go getAllLinksOnPage(newConfig)
 		}
 
-		wg.Wait()
+		waitgroup.Wait()
 
 		keys = keys[size:]
 
-		// add new keys
+		//add new keys
 		for key, value := range allSiteLink {
 			if _, ok := visited[key]; !ok {
 				fmt.Println("ADDING............", key)
@@ -327,8 +314,6 @@ func main() {
 
 	fmt.Println("---", len(keys))
 
-	fmt.Println("visited #", len(visited))
-	fmt.Println("product #", len(productLink))
 }
 
 func minInt(a, b int) int {

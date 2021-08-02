@@ -3,7 +3,6 @@ package controller
 import (
 	"cache_service/crawler-service/db"
 	"cache_service/crawler-service/handler"
-	"cache_service/crawler-service/search"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,20 +11,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Input struct {
-	Str1  string `json:"str1"`
-	Str2  string `json:"str2"`
-	Str3  string `json:"str3"`
-	Depth int    `json:"depth"`
-	Link  string `json:"link"`
-}
-
 func CrawlerGetController(context *gin.Context) {
 	link := context.Query("link")
 	depth := context.DefaultQuery("depth", "0")
+	worker := context.DefaultQuery("worker", "5")
 	depth_val, err := strconv.Atoi(depth)
 	if err != nil {
 		log.Fatal("error parsing depth to int ", err)
+	}
+	worker_val, err := strconv.Atoi(worker)
+	if err != nil {
+		log.Fatal("error parsing worker to int ", err)
 	}
 
 	if link == "" {
@@ -33,45 +29,9 @@ func CrawlerGetController(context *gin.Context) {
 		return
 	}
 
-	links := search.Run(link, depth_val)
-	if links.Error != nil {
-		context.JSON(http.StatusOK, gin.H{"success": false, "error": err})
-	} else {
-		context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
-		// after responsing with json, run db update in the background
-		// items := &db.Context{ProductList: links.List}
-		// db.SaveToDB(items)
-	}
-}
+	handler.GetUrl(link, depth_val, worker_val)
+	context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
 
-func CrawlerPostController(context *gin.Context) {
-	var input Input
-
-	if err := context.ShouldBindJSON(&input); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if input.Link == "" {
-		log.Println("please provide a link in the query to crawl")
-		return
-	}
-	//get sample product link input
-	sample_input := handler.SampleLink{
-		Str1: input.Str1,
-		Str2: input.Str2,
-		Str3: input.Str3,
-	}
-	links := handler.GetProductUrl(input.Link, input.Depth, sample_input)
-	if links.Error != nil {
-		context.JSON(http.StatusOK, gin.H{"success": false, "error": links.Error})
-	} else {
-		//truncate list to avoid browser throwing error of too much payload
-		context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
-		// after responsing with json, run db update in the background
-		// items := &db.Context{ProductList: links.List}
-		// db.SaveToDB(items)
-	}
 }
 
 func DeleteProductUrl(context *gin.Context) {

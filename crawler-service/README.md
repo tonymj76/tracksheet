@@ -55,18 +55,3 @@ To search for a product GET `/crawler/searchproduct` pass the following queries
 * limit (table limit)
 * k (the search string)
 
-
-
-Note: This option should only be used when there is a visible pattern in product url eg site.com/prd/123 and site.com/prd/345
-
-9. To manually provide product url example POST `crawler/scrap`, pass in the following body
-
-```
-{ 
-    Str1  (product link eg 1)
-	Str2   (product link eg 2)
-	Str3   (product link eg 3)
-	Depth   (depth)
-	Link  (url to scrap)
-}
-```

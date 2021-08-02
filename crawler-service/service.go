@@ -26,7 +26,6 @@ func main() {
 		crawler.GET("/scrap", controller.CrawlerGetController)
 		crawler.GET("/productdelete", controller.DeleteProductUrl)
 		crawler.GET("/searchproduct", controller.SearchProduct)
-		crawler.POST("/scrap", controller.CrawlerPostController)
 	}
 
 	ginConfig.Run(config.GetEnv("PORT"))
