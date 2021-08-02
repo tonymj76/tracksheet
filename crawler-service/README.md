@@ -35,7 +35,7 @@ To access the crawl service access the end point GET `/crawler/scrap`, pass the 
 
 * link (link of site to crawl)
 * depth (use if using recursive depth search method); an int value. The more the depth, the more itemsretrieved
-
+* worker (number of workers to configure)
 
 
 To get the product url details of a url GET `/crawler/product` pass the following queries
@@ -55,3 +55,5 @@ To search for a product GET `/crawler/searchproduct` pass the following queries
 * limit (table limit)
 * k (the search string)
 
+To scrap a website sitemap, GET `/crawler/scrapsitemap` pass the following queries
+* link (the sitemap to scrap)

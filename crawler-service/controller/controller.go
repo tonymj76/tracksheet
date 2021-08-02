@@ -3,6 +3,7 @@ package controller
 import (
 	"cache_service/crawler-service/db"
 	"cache_service/crawler-service/handler"
+	"cache_service/crawler-service/search"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 
 func CrawlerGetController(context *gin.Context) {
 	link := context.Query("link")
-	depth := context.DefaultQuery("depth", "0")
+	depth := context.DefaultQuery("depth", "5")
 	worker := context.DefaultQuery("worker", "5")
 	depth_val, err := strconv.Atoi(depth)
 	if err != nil {
@@ -32,6 +33,25 @@ func CrawlerGetController(context *gin.Context) {
 	handler.GetUrl(link, depth_val, worker_val)
 	context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
 
+}
+
+func CrawlerGetSitemapController(context *gin.Context) {
+	link := context.Query("link")
+	if link == "" {
+		log.Panicln("please provide a link in the query to crawl")
+		return
+	}
+
+	link_details := search.Run(link)
+	if link_details.Error != nil {
+		context.JSON(http.StatusOK, gin.H{"success": false, "message": "error performing job", "error": link_details.Error})
+	} else {
+		context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
+		//add links to db
+		for _, product_url := range link_details.List {
+			db.SaveToDB(product_url)
+		}
+	}
 }
 
 func DeleteProductUrl(context *gin.Context) {

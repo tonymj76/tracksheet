@@ -38,7 +38,6 @@ var (
 
 	allSiteLink map[string]int
 	visited     map[string]struct{}
-	productLink map[string]struct{}
 )
 
 type crawlconfig struct {
@@ -47,6 +46,7 @@ type crawlconfig struct {
 }
 
 var (
+	//key words to identify a product link
 	keywordSet = map[string]struct{}{
 		"price":       none,
 		"add to cart": none,
@@ -59,6 +59,7 @@ var (
 		"buy":         none,
 	}
 
+	//keywords on url not to visit
 	skipSet = map[string]struct{}{
 		"career":   none,
 		"coupons":  none,
@@ -71,6 +72,7 @@ var (
 		"content":  none,
 		"account":  none,
 		"login":    none,
+		"log-in":   none,
 		"contact":  none,
 		"faq":      none,
 		"privacy":  none,
@@ -93,6 +95,7 @@ var (
 	}
 )
 
+//identify possible url
 func isPossibleProductURL(element *rod.Element, href string) bool {
 	// must not contain search in href
 	if strings.Contains(strings.ToLower(href), search) {
@@ -115,6 +118,7 @@ func isPossibleProductURL(element *rod.Element, href string) bool {
 		}
 	}
 
+	//get element children
 	children, err := element.Elements(childrenSelector)
 
 	if err == nil && len(children) > 0 {
@@ -211,6 +215,7 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 	}
 }
 
+//get all links on page
 func getAllLinksOnPage(crawl_config crawlconfig) {
 
 	crawl_config.website = strings.TrimSpace(crawl_config.website)
@@ -249,6 +254,7 @@ func getAllLinksOnPage(crawl_config crawlconfig) {
 }
 
 func GetUrl(website string, depth, worker int) {
+	//number of workers
 	numWorkers := worker
 
 	waitgroup = &sync.WaitGroup{}
@@ -261,7 +267,6 @@ func GetUrl(website string, depth, worker int) {
 
 	allSiteLink = map[string]int{}
 	visited = map[string]struct{}{}
-	productLink = map[string]struct{}{}
 
 	// get root urls
 	waitgroup.Add(1)
@@ -284,8 +289,6 @@ func GetUrl(website string, depth, worker int) {
 	for len(keys) > 0 {
 		size := minInt(numWorkers, len(keys))
 
-		fmt.Println("all links #", len(keys))
-
 		for i := 0; i < size; i++ {
 			depth := keys[i].depth
 			fmt.Println("DEPTH::::::::", depth)
@@ -293,7 +296,7 @@ func GetUrl(website string, depth, worker int) {
 			// visited[keys[i].key] = none
 			delete(allSiteLink, keys[i].key)
 
-			newConfig := crawlconfig{website: keys[i].key, depth: keys[i].depth}
+			newConfig := crawlconfig{website: keys[i].key, depth: keys[i].depth - 1}
 			waitgroup.Add(1)
 			go getAllLinksOnPage(newConfig)
 		}
@@ -305,8 +308,7 @@ func GetUrl(website string, depth, worker int) {
 		//add new keys
 		for key, value := range allSiteLink {
 			if _, ok := visited[key]; !ok {
-				fmt.Println("ADDING............", key)
-				keys = append(keys, kvPair{key: key, depth: value})
+				keys = append(keys, kvPair{key: key, depth: value - 1})
 				delete(allSiteLink, key)
 			}
 		}
