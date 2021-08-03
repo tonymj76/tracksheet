@@ -57,3 +57,12 @@ To search for a product GET `/crawler/searchproduct` pass the following queries
 
 To scrap a website sitemap, GET `/crawler/scrapsitemap` pass the following queries
 * link (the sitemap to scrap)
+
+### Aamzon setup
+* Upload the Go build and `env.json` to the amazon env with all the configuration options
+* Run the following command in the env to set up chromium (assuming it is a deb environment)
+`wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb`
+`sudo apt install ./google-chrome-stable_current_amd64.deb`
+For other env visit https://go-rod.github.io/#/compatibility?id=os:
+
+* Start the server with `./goBuild` (avoid using sudo command to start the build)
