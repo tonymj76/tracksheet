@@ -287,7 +287,7 @@ func GetUrl(website string, depth, worker int) {
 	}
 
 	for len(keys) > 0 {
-		size := minInt(numWorkers, len(keys))
+		size := minInt(numWorkers)
 
 		for i := 0; i < size; i++ {
 			depth := keys[i].depth
@@ -318,9 +318,9 @@ func GetUrl(website string, depth, worker int) {
 
 }
 
-func minInt(a, b int) int {
-	if a <= b {
-		return a
+func minInt(a int) int {
+	if a >= 50 {
+		return 50
 	}
-	return b
+	return a
 }
