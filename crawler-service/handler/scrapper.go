@@ -216,14 +216,16 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 			possible, class := isPossibleProductURL(link, resolvedURLString)
 			if possible {
 				count++
-				if class_count, ok := ahrefSelector[class]; ok {
-					ahrefSelector[class] = class_count + 1
-				} else {
-					ahrefSelector[class] = 1
-				}
-				if count == 1000 {
-					selector := getMaxclass(ahrefSelector)
-					db.SaveSelector(selector, base.String())
+				if count < 1001 {
+					if class_count, ok := ahrefSelector[class]; ok {
+						ahrefSelector[class] = class_count + 1
+					} else {
+						ahrefSelector[class] = 1
+					}
+					if count == 1000 {
+						selector := getMaxclass(ahrefSelector)
+						db.SaveSelector(selector, base.String())
+					}
 				}
 
 				productMut.Lock()
