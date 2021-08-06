@@ -36,8 +36,10 @@ var (
 
 	waitgroup *sync.WaitGroup
 
-	allSiteLink map[string]int
-	visited     map[string]struct{}
+	allSiteLink   map[string]int
+	visited       map[string]struct{}
+	count         = 0
+	ahrefSelector map[string]int
 )
 
 type crawlconfig struct {
@@ -96,15 +98,22 @@ var (
 )
 
 //identify possible url
-func isPossibleProductURL(element *rod.Element, href string) bool {
+func isPossibleProductURL(element *rod.Element, href string) (bool, string) {
+
+	class := element.MustAttribute("class")
+	if class == nil {
+		return false, ""
+	}
+	class_details := strings.ReplaceAll(*class, " ", ",")
+
 	// must not contain search in href
 	if strings.Contains(strings.ToLower(href), search) {
-		return false
+		return false, ""
 	}
 
 	// contains product?
 	if strings.Contains(strings.ToLower(href), product) {
-		return true
+		return true, class_details
 	}
 
 	// contains keyword text?
@@ -114,7 +123,7 @@ func isPossibleProductURL(element *rod.Element, href string) bool {
 		_, ok := keywordSet[text]
 
 		if ok {
-			return true
+			return true, class_details
 		}
 	}
 
@@ -122,9 +131,10 @@ func isPossibleProductURL(element *rod.Element, href string) bool {
 	children, err := element.Elements(childrenSelector)
 
 	if err == nil && len(children) > 0 {
+
 		// has image tag?
 		if _, err := children.First().Element(imageQuery); err == nil {
-			return true
+			return true, class_details
 		}
 
 		//get the href in the children node and recursively visit those too
@@ -137,14 +147,14 @@ func isPossibleProductURL(element *rod.Element, href string) bool {
 				}
 
 				if href != nil {
-					if isPossibleProductURL(child, *href) {
-						return true
+					if value, _ := isPossibleProductURL(child, *href); value {
+						return true, class_details
 					}
 				}
 			}
 		}
 	}
-	return false
+	return false, ""
 }
 
 func getLinks(base *url.URL, crawl_config crawlconfig) {
@@ -162,11 +172,11 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 	page.MustWaitLoad()
 
 	allLinks := page.MustElements(linksSelector)
-
 	//iterate all items in the link list
 	for _, link := range allLinks {
 
 		href, err := link.Attribute(`href`)
+
 		if err != nil {
 			logrus.Warnln("UNABLE TO GET HREF ", err)
 			continue
@@ -203,9 +213,19 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 			allSiteMut.Unlock()
 
 			// check if it's product URL
-			possible := isPossibleProductURL(link, resolvedURLString)
-
+			possible, class := isPossibleProductURL(link, resolvedURLString)
 			if possible {
+				count++
+				if class_count, ok := ahrefSelector[class]; ok {
+					ahrefSelector[class] = class_count + 1
+				} else {
+					ahrefSelector[class] = 1
+				}
+				if count == 1000 {
+					selector := getMaxclass(ahrefSelector)
+					db.SaveSelector(selector, base.String())
+				}
+
 				productMut.Lock()
 				db.SaveToDB(resolvedURLString)
 				productMut.Unlock()
@@ -213,6 +233,18 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 		}
 
 	}
+}
+
+func getMaxclass(hredSelector map[string]int) string {
+	count := 0
+	return_key := ""
+	for key, value := range hredSelector {
+		if value > count {
+			count = value
+			return_key = key
+		}
+	}
+	return return_key
 }
 
 //get all links on page
@@ -267,6 +299,7 @@ func GetUrl(website string, depth, worker int) {
 
 	allSiteLink = map[string]int{}
 	visited = map[string]struct{}{}
+	ahrefSelector = map[string]int{}
 
 	// get root urls
 	waitgroup.Add(1)

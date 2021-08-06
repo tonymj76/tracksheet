@@ -18,6 +18,11 @@ type (
 		gorm.Model
 		ProductURL *string `gorm:"unique;not null"`
 	}
+	ProductLinkSelector struct {
+		gorm.Model
+		ProductSelector *string
+		RootURL         *string `gorm:"unique;not null"`
+	}
 )
 
 var DB *gorm.DB
@@ -30,7 +35,7 @@ func CreateDBConnection() {
 	if err != nil {
 		logrus.WithError(err).Fatalln("failed to initiate the db")
 	}
-	err = db.AutoMigrate(&URLProductLink{})
+	err = db.AutoMigrate(&URLProductLink{}, &ProductLinkSelector{})
 	if err != nil {
 		logrus.WithError(err).Fatalln("error migrating")
 	}
