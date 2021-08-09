@@ -19,7 +19,7 @@ func SaveToDB(product string) {
 }
 
 func SaveSelector(selector, root_url string) {
-	error := DB.Create(&ProductLinkSelector{ProductSelector: &selector, RootURL: &root_url})
+	error := DB.Create(&ProductSelector{ProductSelector: &selector, RootURL: &root_url}).Error
 	if error != nil {
 		logrus.Warnln("ERROR WRITING TO DB  ", error)
 	}

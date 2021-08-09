@@ -27,6 +27,10 @@ func main() {
 		crawler.GET("/productdelete", controller.DeleteProductUrl)
 		crawler.GET("/searchproduct", controller.SearchProduct)
 		crawler.GET("/scrapsitemap", controller.CrawlerGetSitemapController)
+		crawler.POST("/addconfig", controller.AddSelectorConfig)
+		crawler.POST("/updateconfig", controller.UpdateSelectorConfig)
+		crawler.GET("/getconfig", controller.GetSelectorConfig)
+		crawler.GET("/deleteconfig", controller.DeleteSelectorConfig)
 	}
 
 	ginConfig.Run(config.GetEnv("PORT"))
