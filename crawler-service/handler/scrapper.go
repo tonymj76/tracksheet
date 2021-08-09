@@ -83,7 +83,6 @@ var (
 		"icon":     none,
 		"sign-up":  none,
 		"signup":   none,
-		"advert":   none,
 
 		".css":  none,
 		".js":   none,
