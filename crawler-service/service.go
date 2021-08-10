@@ -31,6 +31,7 @@ func main() {
 		crawler.POST("/updateconfig", controller.UpdateSelectorConfig)
 		crawler.GET("/getconfig", controller.GetSelectorConfig)
 		crawler.GET("/deleteconfig", controller.DeleteSelectorConfig)
+		crawler.GET("/deleteallconfig", controller.DeleteAllUrlSelectors)
 	}
 
 	ginConfig.Run(config.GetEnv("PORT"))

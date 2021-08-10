@@ -20,16 +20,9 @@ type (
 	}
 	ProductSelector struct {
 		gorm.Model
-		ProductSelector      *string
-		ReatilerNameSelector *string
-		TitleSelector        *string
-		DescriptionSelector  *string
-		ImageSelector        *string
-		UpcSelector          *string
-		SkuSelector          *string
-		BrandSelector        *string
-		CategorySelector     *string
-		RootURL              *string `gorm:"unique;not null"`
+		AttrName  *string `gorm:"not null"`
+		AttrValue *string `gorm:"not null"`
+		RootURL   *string `gorm:"not null"`
 	}
 )
 

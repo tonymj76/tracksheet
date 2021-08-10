@@ -13,16 +13,9 @@ import (
 )
 
 type SelectorConfig struct {
-	ProductSelector      string `json:"productselector"`
-	ReatilerNameSelector string `json:"retailnameselector"`
-	TitleSelector        string `json:"titleselector"`
-	DescriptionSelector  string `json:"descriptionselector"`
-	ImageSelector        string `json:"imageselector"`
-	UpcSelector          string `json:"upcselector"`
-	SkuSelector          string `json:"skuselector"`
-	BrandSelector        string `json:"brandselector"`
-	CategorySelector     string `json:"categoryselector"`
-	RootURL              string `json:"rooturl"`
+	AttrName  string `json:"attrname"`
+	AttrValue string `json:"attrvalue"`
+	RootURL   string `json:"rooturl"`
 }
 
 func CrawlerGetController(context *gin.Context) {
@@ -104,47 +97,52 @@ func SearchProduct(context *gin.Context) {
 }
 
 func AddSelectorConfig(context *gin.Context) {
-	var config SelectorConfig
-	if err := context.ShouldBindJSON(&config); err != nil {
+	var config db.ProductSelector
+	var input SelectorConfig
+
+	if err := context.ShouldBindJSON(&input); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-	if config.RootURL == "" {
+	//root url value should not empty
+	if input.RootURL == "" {
 		context.JSON(http.StatusOK, gin.H{"success": false, "message": "root url cannot be blank"})
 		return
 	}
-	selector := db.ProductSelector{
-		ProductSelector:      &config.ProductSelector,
-		ReatilerNameSelector: &config.ReatilerNameSelector,
-		TitleSelector:        &config.TitleSelector,
-		DescriptionSelector:  &config.DescriptionSelector,
-		ImageSelector:        &config.ImageSelector,
-		UpcSelector:          &config.UpcSelector,
-		SkuSelector:          &config.SkuSelector,
-		BrandSelector:        &config.BrandSelector,
-		CategorySelector:     &config.CategorySelector,
-		RootURL:              &config.RootURL,
-	}
-	error := db.DB.Create(&selector).Error
 
-	if error != nil {
-		context.JSON(http.StatusOK, gin.H{"success": false, "message": "error saving to DB", "error": error})
-	} else {
-		context.JSON(http.StatusOK, gin.H{"success": true, "message": "selector config saved to DB"})
+	//if a root url and attr name does not exist for a value, add it
+	if err := db.DB.Where("root_url = ?", &input.RootURL).Where("attr_name = ?", &input.AttrName).First(&config).Error; err != nil {
+		selector := db.ProductSelector{
+			AttrName:  &input.AttrName,
+			AttrValue: &input.AttrValue,
+			RootURL:   &input.RootURL,
+		}
+		error := db.DB.Create(&selector).Error
+
+		if error != nil {
+			context.JSON(http.StatusOK, gin.H{"success": false, "message": "error saving to DB", "error": error})
+			return
+		} else {
+			context.JSON(http.StatusOK, gin.H{"success": true, "message": "selector config saved to DB"})
+			return
+		}
 	}
+	context.JSON(http.StatusOK, gin.H{"success": false, "message": "selector config already added"})
+
 }
 
 func UpdateSelectorConfig(context *gin.Context) {
 	var config db.ProductSelector
 	var input SelectorConfig
 	link := context.Query("url")
+	attr_name := context.Query("attr_name")
 
-	if link == "" {
+	if link == "" || attr_name == "" {
 		context.JSON(http.StatusOK, gin.H{"success": false, "message": "url query cannot be blank"})
 		return
 	}
 
-	if err := db.DB.Where("root_url = ?", link).First(&config).Error; err != nil {
+	if err := db.DB.Where("root_url = ?", link).Where("attr_name = ?", attr_name).First(&config).Error; err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
 		return
 	}
@@ -154,15 +152,7 @@ func UpdateSelectorConfig(context *gin.Context) {
 		return
 	}
 	selector := db.ProductSelector{
-		ProductSelector:      &input.ProductSelector,
-		ReatilerNameSelector: &input.ReatilerNameSelector,
-		TitleSelector:        &input.TitleSelector,
-		DescriptionSelector:  &input.DescriptionSelector,
-		ImageSelector:        &input.ImageSelector,
-		UpcSelector:          &input.UpcSelector,
-		SkuSelector:          &input.SkuSelector,
-		BrandSelector:        &input.BrandSelector,
-		CategorySelector:     &input.CategorySelector,
+		AttrValue: &input.AttrValue,
 	}
 	error := db.DB.Model(&config).Updates(selector).Error
 
@@ -174,17 +164,14 @@ func UpdateSelectorConfig(context *gin.Context) {
 }
 
 func GetSelectorConfig(context *gin.Context) {
-	var config db.ProductSelector
+	var config []db.ProductSelector
 	link := context.Query("url")
 
 	if link == "" {
 		context.JSON(http.StatusOK, gin.H{"success": false, "message": "url query cannot be blank"})
 		return
 	}
-	if err := db.DB.Where("root_url = ?", link).First(&config).Error; err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
-		return
-	}
+	db.DB.Where("root_url = ?", link).Find(&config)
 	context.JSON(http.StatusOK, gin.H{"success": true, "message": config})
 
 }
@@ -192,15 +179,29 @@ func GetSelectorConfig(context *gin.Context) {
 func DeleteSelectorConfig(context *gin.Context) {
 	var config db.ProductSelector
 	link := context.Query("url")
+	attr_name := context.Query("attr_name")
+
+	if link == "" || attr_name == "" {
+		context.JSON(http.StatusOK, gin.H{"success": false, "message": "url query or attr name cannot be blank"})
+		return
+	}
+	if err := db.DB.Where("root_url = ?", link).Where("attr_name = ?", attr_name).First(&config).Error; err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
+		return
+	}
+	db.DB.Delete(&config)
+	context.JSON(http.StatusOK, gin.H{"success": true, "message": "delete config successful"})
+}
+
+func DeleteAllUrlSelectors(context *gin.Context) {
+	var config []db.ProductSelector
+	link := context.Query("url")
 
 	if link == "" {
 		context.JSON(http.StatusOK, gin.H{"success": false, "message": "url query cannot be blank"})
 		return
 	}
-	if err := db.DB.Where("root_url = ?", link).First(&config).Error; err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
-		return
-	}
+	db.DB.Where("root_url = ?", link).Find(&config)
 	db.DB.Delete(&config)
 	context.JSON(http.StatusOK, gin.H{"success": true, "message": "delete config successful"})
 }

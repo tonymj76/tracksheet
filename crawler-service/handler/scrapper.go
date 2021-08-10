@@ -186,11 +186,13 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 	page.Timeout(1 * time.Minute)
 	//wait for page load
 	page.MustWaitLoad()
-	selectorConfic, _ := getSelectorConfig(base.String())
-
+	selectorConfic, err := getSelectorConfig(base.String(), "product_selector")
+	if err != nil {
+		fmt.Println("error getting selector ", err)
+	}
 	switch {
-	case selectorConfic.ProductSelector != nil:
-		classSelector := page.MustElements(*selectorConfic.ProductSelector)
+	case selectorConfic.AttrValue != nil:
+		classSelector := page.MustElements(*selectorConfic.AttrValue)
 
 		domChildren := []string{}
 		for _, item := range classSelector {
@@ -415,12 +417,9 @@ func minInt(a int) int {
 	return a
 }
 
-func getSelectorConfig(link string) (*db.ProductSelector, error) {
-	var config db.ProductSelector
-	if err := db.DB.Where("root_url = ?", link).First(&config).Error; err != nil {
-		return nil, err
-	}
-	return &config, nil
+func getSelectorConfig(link, attr string) (*db.ProductSelector, error) {
+	product_selector, err := GetUrlConfig(link, attr)
+	return &product_selector, err
 }
 
 // parseURLFromSelector retrieves all the url links from the html body
@@ -434,4 +433,12 @@ func parseURLFromSelector(matchString string) []string {
 		niceStr = append(niceStr, strings.Split(re.ReplaceAllString(str, ""), `"`)[0])
 	}
 	return niceStr
+}
+
+func GetUrlConfig(url, attr_name string) (db.ProductSelector, error) {
+	var config db.ProductSelector
+	if err := db.DB.Where("root_url = ?", &url).Where("attr_name = ?", &attr_name).First(&config).Error; err != nil {
+		return config, err
+	}
+	return config, nil
 }
