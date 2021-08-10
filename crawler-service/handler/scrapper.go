@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -62,38 +63,37 @@ var (
 	}
 
 	//keywords on url not to visit
-	skipSet = map[string]struct{}{
-		"career":   none,
-		"coupons":  none,
-		"deal":     none,
-		"help":     none,
-		"sitemap":  none,
-		"blog":     none,
-		"policy":   none,
-		"checkout": none,
-		"content":  none,
-		"account":  none,
-		"login":    none,
-		"log-in":   none,
-		"contact":  none,
-		"faq":      none,
-		"privacy":  none,
-		"about":    none,
-		"customer": none,
-		"icon":     none,
-		"sign-up":  none,
-		"signup":   none,
-
-		".css":  none,
-		".js":   none,
-		".png":  none,
-		".jpeg": none,
-		".jpg":  none,
-		".tiff": none,
-		".ico":  none,
-		".pdf":  none,
-		".docx": none,
-		".doc":  none,
+	skipSet = [...]string{
+		"career",
+		"coupons",
+		"deal",
+		"help",
+		"sitemap",
+		"blog",
+		"policy",
+		"checkout",
+		"content",
+		"account",
+		"login",
+		"log-in",
+		"contact",
+		"faq",
+		"privacy",
+		"about",
+		"customer",
+		"icon",
+		"sign-up",
+		"signup",
+		".css",
+		".js",
+		".png",
+		".jpeg",
+		".jpg",
+		".tiff",
+		".ico",
+		".pdf",
+		".docx",
+		".doc",
 	}
 )
 
@@ -170,70 +170,109 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 	page.Timeout(1 * time.Minute)
 	//wait for page load
 	page.MustWaitLoad()
+	selectorConfic, _ := getSelectorConfig(base.String())
 
-	allLinks := page.MustElements(linksSelector)
-	//iterate all items in the link list
-	for _, link := range allLinks {
+	switch {
+	case selectorConfic.ProductSelector != nil:
+		classSelector := page.MustElements(*selectorConfic.ProductSelector)
 
-		href, err := link.Attribute(`href`)
-
-		if err != nil {
-			logrus.Warnln("UNABLE TO GET HREF ", err)
-			continue
+		domChildren := []string{}
+		for _, item := range classSelector {
+			domChildren = append(domChildren, parseURLFromSelector(item.MustHTML())...)
 		}
-
-		parsed_url, err := url.Parse(strings.TrimSpace(*href))
-		if err != nil {
-			logrus.Warnf("unable to parse link:%s\n%v", *href, err)
-			continue
-		}
-
-		resolvedURL := base.ResolveReference(parsed_url)
-		resolvedURLString := resolvedURL.String()
-
-		// skip if not same hostname
-		if base.Hostname() != resolvedURL.Hostname() {
-			continue
-		}
-
-		// skip if in skipset
-		inSkipSet := false
-		for key := range skipSet {
-			if strings.Contains(resolvedURL.RequestURI(), key) {
-				inSkipSet = true
-				break
+		for _, child := range domChildren {
+			parsed_url, err := url.Parse(strings.TrimSpace(child))
+			if err != nil {
+				continue
 			}
-		}
+			resolvedURL := base.ResolveReference(parsed_url)
+			resolvedURLString := resolvedURL.String()
 
-		if !inSkipSet {
+			// skip if not same hostname
+			if base.Hostname() != resolvedURL.Hostname() {
+				continue
+			}
 
-			// write
+			for _, key := range skipSet {
+				if strings.Contains(resolvedURL.RequestURI(), key) {
+					continue
+				}
+			}
+
 			allSiteMut.Lock()
 			allSiteLink[resolvedURLString] = crawl_config.depth - 1
 			allSiteMut.Unlock()
 
-			// check if it's product URL
-			possible, class := isPossibleProductURL(link, resolvedURLString)
-			if possible {
-				count++
-				if count < 1001 {
-					if class_count, ok := ahrefSelector[class]; ok {
-						ahrefSelector[class] = class_count + 1
-					} else {
-						ahrefSelector[class] = 1
-					}
-					if count == 1000 {
-						selector := getMaxclass(ahrefSelector)
-						db.SaveSelector(selector, base.String())
-					}
-				}
+			productMut.Lock()
+			db.SaveToDB(resolvedURLString)
+			productMut.Unlock()
+		}
+		fmt.Println("am in my >>>>>>>>>>>>>>>>>>>>>>>>>>...")
+	default:
+		fmt.Println("am in default >>>>>>>>>>>>>>>>>>>>>>>>>>...")
+		allLinks := page.MustElements(linksSelector)
+		//iterate all items in the link list
+		for _, link := range allLinks {
 
-				productMut.Lock()
-				db.SaveToDB(resolvedURLString)
-				productMut.Unlock()
+			href, err := link.Attribute(`href`)
+
+			if err != nil {
+				logrus.Warnln("UNABLE TO GET HREF ", err)
+				continue
+			}
+
+			parsed_url, err := url.Parse(strings.TrimSpace(*href))
+			if err != nil {
+				logrus.Warnf("unable to parse link:%s\n%v", *href, err)
+				continue
+			}
+
+			resolvedURL := base.ResolveReference(parsed_url)
+			resolvedURLString := resolvedURL.String()
+
+			// skip if not same hostname
+			if base.Hostname() != resolvedURL.Hostname() {
+				continue
+			}
+
+			// skip if in skipset
+			inSkipSet := false
+			for _, key := range skipSet {
+				if strings.Contains(resolvedURL.RequestURI(), key) {
+					inSkipSet = true
+					break
+				}
+			}
+
+			if !inSkipSet {
+
+				// write
+				allSiteMut.Lock()
+				allSiteLink[resolvedURLString] = crawl_config.depth - 1
+				allSiteMut.Unlock()
+
+				// check if it's product URL
+				possible, class := isPossibleProductURL(link, resolvedURLString)
+				if possible {
+					count++
+					if count < 1001 {
+						if class_count, ok := ahrefSelector[class]; ok {
+							ahrefSelector[class] = class_count + 1
+						} else {
+							ahrefSelector[class] = 1
+						}
+						if count == 1000 {
+							selector := getMaxclass(ahrefSelector)
+							db.SaveSelector(selector, base.String())
+						}
+					}
+
+					productMut.Lock()
+					db.SaveToDB(resolvedURLString)
+					productMut.Unlock()
+				}
 			}
 		}
-
 	}
 }
 
@@ -358,4 +397,25 @@ func minInt(a int) int {
 		return 50
 	}
 	return a
+}
+
+func getSelectorConfig(link string) (*db.ProductSelector, error) {
+	var config db.ProductSelector
+	if err := db.DB.Where("root_url = ?", link).First(&config).Error; err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+// parseURLFromSelector retrieves all the url links from the html body
+func parseURLFromSelector(matchString string) []string {
+	niceStr := []string{}
+	var HTMLLinkPattern = `href=[^\s]+`
+	re := regexp.MustCompile(`(href=")`)
+	validString := regexp.MustCompile(HTMLLinkPattern)
+
+	for _, str := range validString.FindAllString(matchString, -1) {
+		niceStr = append(niceStr, strings.Split(re.ReplaceAllString(str, ""), `"`)[0])
+	}
+	return niceStr
 }
