@@ -92,6 +92,8 @@ var (
 		".pdf",
 		".docx",
 		".doc",
+		".woff2",
+		".woff",
 	}
 )
 
