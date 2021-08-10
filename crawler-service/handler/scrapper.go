@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"cache_service/crawler-service/config"
+	"cache_service/crawler-service/db"
 	"context"
 	"errors"
 	"fmt"
@@ -9,10 +11,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"cache_service/crawler-service/db"
-
-	"cache_service/crawler-service/config"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
@@ -49,7 +47,7 @@ type crawlconfig struct {
 }
 
 var (
-	//key words to identify a product link
+	// key words to identify a product link
 	keywordSet = map[string]struct{}{
 		"price":       none,
 		"add to cart": none,
@@ -62,7 +60,7 @@ var (
 		"buy":         none,
 	}
 
-	//keywords on url not to visit
+	// keywords on url not to visit
 	skipSet = [...]string{
 		"career",
 		"coupons",
@@ -98,7 +96,6 @@ var (
 )
 
 func mapToClass(element *rod.Element, href, class_details string) (bool, string) {
-
 	// must not contain search in href
 	if strings.Contains(strings.ToLower(href), search) {
 		return false, ""
@@ -120,7 +117,7 @@ func mapToClass(element *rod.Element, href, class_details string) (bool, string)
 		}
 	}
 
-	//get element children
+	// get element children
 	children, err := element.Elements(childrenSelector)
 
 	if err == nil && len(children) > 0 {
@@ -130,7 +127,7 @@ func mapToClass(element *rod.Element, href, class_details string) (bool, string)
 			return true, class_details
 		}
 
-		//get the href in the children node and recursively visit those too
+		// get the href in the children node and recursively visit those too
 		if len(children) > 0 {
 			for _, child := range children {
 				href, err := child.Attribute(`href`)
@@ -150,9 +147,8 @@ func mapToClass(element *rod.Element, href, class_details string) (bool, string)
 	return false, ""
 }
 
-//identify possible url
+// identify possible url
 func isPossibleProductURL(element *rod.Element, href string) (bool, string) {
-
 	class := element.MustAttribute("class")
 	if class == nil {
 		parent, err := element.Parent()
@@ -170,11 +166,10 @@ func isPossibleProductURL(element *rod.Element, href string) (bool, string) {
 		class_details := strings.ReplaceAll(*class, " ", ",")
 		return mapToClass(element, href, class_details)
 	}
-
 }
 
 func getLinks(base *url.URL, crawl_config crawlconfig) {
-	//create a rod instance with user agent
+	// create a rod instance with user agent
 	page := rod.New().MustConnect().MustPage(base.String())
 	defer page.Close()
 
@@ -184,7 +179,7 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 	page.SetUserAgent(&userAgentHeaderOverride)
 	// timeout
 	page.Timeout(1 * time.Minute)
-	//wait for page load
+	// wait for page load
 	page.MustWaitLoad()
 	selectorConfic, err := getSelectorConfig(base.String(), "product_selector")
 	if err != nil {
@@ -229,11 +224,10 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 	default:
 		fmt.Println("am in default >>>>>>>>>>>>>>>>>>>>>>>>>>...")
 		allLinks := page.MustElements(linksSelector)
-		//iterate all items in the link list
+		// iterate all items in the link list
 		for _, link := range allLinks {
 
 			href, err := link.Attribute(`href`)
-
 			if err != nil {
 				logrus.Warnln("UNABLE TO GET HREF ", err)
 				continue
@@ -306,9 +300,8 @@ func getMaxclass(hredSelector map[string]int) string {
 	return return_key
 }
 
-//get all links on page
+// get all links on page
 func getAllLinksOnPage(crawl_config crawlconfig) {
-
 	crawl_config.website = strings.TrimSpace(crawl_config.website)
 
 	// visited?
@@ -337,7 +330,7 @@ func getAllLinksOnPage(crawl_config crawlconfig) {
 			logrus.Errorf("TIMEOUT ON %s", crawl_config.website, tryError)
 		} else if tryError != nil {
 			// code for other types of error
-			logrus.Errorf("ERROR ON %s", crawl_config.website, tryError)
+			logrus.Errorf("ERROR ON %v %v", crawl_config.website, tryError)
 		}
 	}
 
@@ -345,7 +338,7 @@ func getAllLinksOnPage(crawl_config crawlconfig) {
 }
 
 func GetUrl(website string, depth, worker int) {
-	//number of workers
+	// number of workers
 	numWorkers := worker
 
 	waitgroup = &sync.WaitGroup{}
@@ -379,7 +372,7 @@ func GetUrl(website string, depth, worker int) {
 	}
 
 	for len(keys) > 0 {
-		size := minInt(numWorkers)
+		size := minInt(len(keys), numWorkers)
 
 		for i := 0; i < size; i++ {
 			depth := keys[i].depth
@@ -397,7 +390,7 @@ func GetUrl(website string, depth, worker int) {
 
 		keys = keys[size:]
 
-		//add new keys
+		// add new keys
 		for key, value := range allSiteLink {
 			if _, ok := visited[key]; !ok {
 				keys = append(keys, kvPair{key: key, depth: value - 1})
@@ -407,12 +400,11 @@ func GetUrl(website string, depth, worker int) {
 	}
 
 	fmt.Println("---", len(keys))
-
 }
 
-func minInt(a int) int {
-	if a >= 50 {
-		return 50
+func minInt(a, b int) int {
+	if a >= b {
+		return b
 	}
 	return a
 }
@@ -425,7 +417,7 @@ func getSelectorConfig(link, attr string) (*db.ProductSelector, error) {
 // parseURLFromSelector retrieves all the url links from the html body
 func parseURLFromSelector(matchString string) []string {
 	niceStr := []string{}
-	var HTMLLinkPattern = `href=[^\s]+`
+	HTMLLinkPattern := `href=[^\s]+`
 	re := regexp.MustCompile(`(href=")`)
 	validString := regexp.MustCompile(HTMLLinkPattern)
 
