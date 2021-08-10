@@ -97,14 +97,7 @@ var (
 	}
 )
 
-//identify possible url
-func isPossibleProductURL(element *rod.Element, href string) (bool, string) {
-
-	class := element.MustAttribute("class")
-	if class == nil {
-		return false, ""
-	}
-	class_details := strings.ReplaceAll(*class, " ", ",")
+func mapToClass(element *rod.Element, href, class_details string) (bool, string) {
 
 	// must not contain search in href
 	if strings.Contains(strings.ToLower(href), search) {
@@ -155,6 +148,29 @@ func isPossibleProductURL(element *rod.Element, href string) (bool, string) {
 		}
 	}
 	return false, ""
+}
+
+//identify possible url
+func isPossibleProductURL(element *rod.Element, href string) (bool, string) {
+
+	class := element.MustAttribute("class")
+	if class == nil {
+		parent, err := element.Parent()
+		if err != nil {
+			return false, ""
+		}
+		parent_class := parent.MustAttribute("class")
+		if parent_class == nil {
+			return false, ""
+		} else {
+			class_details := strings.ReplaceAll(*parent_class, " ", ",")
+			return mapToClass(element, href, class_details)
+		}
+	} else {
+		class_details := strings.ReplaceAll(*class, " ", ",")
+		return mapToClass(element, href, class_details)
+	}
+
 }
 
 func getLinks(base *url.URL, crawl_config crawlconfig) {
