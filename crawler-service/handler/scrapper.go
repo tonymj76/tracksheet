@@ -19,7 +19,6 @@ import (
 
 const (
 	childrenSelector = "*"
-	imageQuery       = "img"
 	href             = "href"
 	search           = "search"
 	linksSelector    = "[href]"
@@ -35,10 +34,8 @@ var (
 
 	waitgroup *sync.WaitGroup
 
-	allSiteLink   map[string]int
-	visited       map[string]struct{}
-	count         = 0
-	ahrefSelector map[string]int
+	allSiteLink map[string]int
+	visited     map[string]struct{}
 )
 
 type crawlconfig struct {
@@ -97,15 +94,16 @@ var (
 	}
 )
 
-func mapToClass(element *rod.Element, href, class_details string) (bool, string) {
+// identify possible url
+func isPossibleProductURL(element *rod.Element, href string) bool {
 	// must not contain search in href
 	if strings.Contains(strings.ToLower(href), search) {
-		return false, ""
+		return false
 	}
 
 	// contains product?
 	if strings.Contains(strings.ToLower(href), product) {
-		return true, class_details
+		return true
 	}
 
 	// contains keyword text?
@@ -115,7 +113,7 @@ func mapToClass(element *rod.Element, href, class_details string) (bool, string)
 		_, ok := keywordSet[text]
 
 		if ok {
-			return true, class_details
+			return true
 		}
 	}
 
@@ -123,10 +121,12 @@ func mapToClass(element *rod.Element, href, class_details string) (bool, string)
 	children, err := element.Elements(childrenSelector)
 
 	if err == nil && len(children) > 0 {
-
 		// has image tag?
-		if _, err := children.First().Element(imageQuery); err == nil {
-			return true, class_details
+		for _, val := range children {
+			if strings.Contains(val.String(), "img") {
+				return true
+			}
+
 		}
 
 		// get the href in the children node and recursively visit those too
@@ -139,35 +139,14 @@ func mapToClass(element *rod.Element, href, class_details string) (bool, string)
 				}
 
 				if href != nil {
-					if value, _ := isPossibleProductURL(child, *href); value {
-						return true, class_details
+					if value := isPossibleProductURL(child, *href); value {
+						return true
 					}
 				}
 			}
 		}
 	}
-	return false, ""
-}
-
-// identify possible url
-func isPossibleProductURL(element *rod.Element, href string) (bool, string) {
-	class := element.MustAttribute("class")
-	if class == nil {
-		parent, err := element.Parent()
-		if err != nil {
-			return false, ""
-		}
-		parent_class := parent.MustAttribute("class")
-		if parent_class == nil {
-			return false, ""
-		} else {
-			class_details := strings.ReplaceAll(*parent_class, " ", ",")
-			return mapToClass(element, href, class_details)
-		}
-	} else {
-		class_details := strings.ReplaceAll(*class, " ", ",")
-		return mapToClass(element, href, class_details)
-	}
+	return false
 }
 
 func getLinks(base *url.URL, crawl_config crawlconfig) {
@@ -264,23 +243,9 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 				allSiteMut.Lock()
 				allSiteLink[resolvedURLString] = crawl_config.depth - 1
 				allSiteMut.Unlock()
-
 				// check if it's product URL
-				possible, class := isPossibleProductURL(link, resolvedURLString)
+				possible := isPossibleProductURL(link, resolvedURLString)
 				if possible {
-					count++
-					if count < 1001 {
-						if class_count, ok := ahrefSelector[class]; ok {
-							ahrefSelector[class] = class_count + 1
-						} else {
-							ahrefSelector[class] = 1
-						}
-						if count == 1000 {
-							selector := getMaxclass(ahrefSelector)
-							db.SaveSelector(selector, base.String())
-						}
-					}
-
 					productMut.Lock()
 					db.SaveToDB(resolvedURLString)
 					productMut.Unlock()
@@ -288,18 +253,6 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 			}
 		}
 	}
-}
-
-func getMaxclass(hredSelector map[string]int) string {
-	count := 0
-	return_key := ""
-	for key, value := range hredSelector {
-		if value > count {
-			count = value
-			return_key = key
-		}
-	}
-	return return_key
 }
 
 // get all links on page
@@ -353,7 +306,6 @@ func GetUrl(website string, depth, worker int) {
 
 	allSiteLink = map[string]int{}
 	visited = map[string]struct{}{}
-	ahrefSelector = map[string]int{}
 
 	// get root urls
 	waitgroup.Add(1)
