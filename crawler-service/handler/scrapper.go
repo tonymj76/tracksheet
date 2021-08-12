@@ -91,6 +91,7 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 	switch {
 	case selectorConfic.AttrValue != nil:
 		var selector_config string
+		//parses the selector
 		if strings.HasPrefix(*selectorConfic.AttrValue, ".") {
 			selector_config = *selectorConfic.AttrValue
 			selector_config = strings.ReplaceAll(selector_config, " ", ".")
@@ -98,11 +99,17 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 			selector_config = fmt.Sprintf(".%v", *selectorConfic.AttrValue)
 			selector_config = strings.ReplaceAll(selector_config, " ", ".")
 		}
+
+		//get all nodes that contain the parsed selector
 		classSelector := page.MustElements(selector_config)
 
+		//transverse the slice that has all the nodes
 		for _, link := range classSelector {
+			//extract href attr from parent node
 			href, _ := link.Attribute(`href`)
 
+			//if no href is found in parent node
+			//transverse child node for href attr
 			if href == nil {
 				children, err := link.Elements(childrenSelector)
 				if err != nil {
@@ -112,6 +119,7 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 
 				for _, child := range children {
 					child_href, _ := child.Attribute(`href`)
+					//if href found, add to DB
 					if child_href != nil {
 						parsed_url, _ := url.Parse(strings.TrimSpace(*child_href))
 						resolvedURL := base.ResolveReference(parsed_url)
@@ -128,6 +136,8 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 				}
 
 			} else {
+				//if href found in parent node
+				//add to DB
 				parsed_url, _ := url.Parse(strings.TrimSpace(*href))
 				resolvedURL := base.ResolveReference(parsed_url)
 				resolvedURLString := resolvedURL.String()
