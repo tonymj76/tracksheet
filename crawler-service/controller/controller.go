@@ -97,7 +97,6 @@ func SearchProduct(context *gin.Context) {
 }
 
 func AddSelectorConfig(context *gin.Context) {
-	var config db.ProductSelector
 	var input SelectorConfig
 
 	if err := context.ShouldBindJSON(&input); err != nil {
@@ -111,55 +110,19 @@ func AddSelectorConfig(context *gin.Context) {
 	}
 
 	//if a root url and attr name does not exist for a value, add it
-	if err := db.DB.Where("root_url = ?", &input.RootURL).Where("attr_name = ?", &input.AttrName).First(&config).Error; err != nil {
-		selector := db.ProductSelector{
-			AttrName:  &input.AttrName,
-			AttrValue: &input.AttrValue,
-			RootURL:   &input.RootURL,
-		}
-		error := db.DB.Create(&selector).Error
-
-		if error != nil {
-			context.JSON(http.StatusOK, gin.H{"success": false, "message": "error saving to DB", "error": error})
-			return
-		} else {
-			context.JSON(http.StatusOK, gin.H{"success": true, "message": "selector config saved to DB"})
-			return
-		}
-	}
-	context.JSON(http.StatusOK, gin.H{"success": false, "message": "selector config already added"})
-
-}
-
-func UpdateSelectorConfig(context *gin.Context) {
-	var config db.ProductSelector
-	var input SelectorConfig
-	link := context.Query("url")
-	attr_name := context.Query("attr_name")
-
-	if link == "" || attr_name == "" {
-		context.JSON(http.StatusOK, gin.H{"success": false, "message": "url query cannot be blank"})
-		return
-	}
-
-	if err := db.DB.Where("root_url = ?", link).Where("attr_name = ?", attr_name).First(&config).Error; err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
-		return
-	}
-
-	if err := context.ShouldBindJSON(&input); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
-		return
-	}
 	selector := db.ProductSelector{
+		AttrName:  &input.AttrName,
 		AttrValue: &input.AttrValue,
+		RootURL:   &input.RootURL,
 	}
-	error := db.DB.Model(&config).Updates(selector).Error
+	error := db.DB.Create(&selector).Error
 
 	if error != nil {
-		context.JSON(http.StatusOK, gin.H{"success": false, "message": "error updating field", "error": error})
+		context.JSON(http.StatusOK, gin.H{"success": false, "message": "error saving to DB", "error": error})
+		return
 	} else {
-		context.JSON(http.StatusOK, gin.H{"success": true, "message": "selector config updated"})
+		context.JSON(http.StatusOK, gin.H{"success": true, "message": "selector config saved to DB"})
+		return
 	}
 }
 
