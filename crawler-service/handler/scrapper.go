@@ -91,6 +91,7 @@ func getLinks(base *url.URL, crawlConfig crawlConfiguration) {
 	defer page.Close()
 
 	page.MustWaitLoad()
+	
 	domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
 	selectorConfic, err := getSelectorConfig(domain, "product_selector")
 	if err != nil {
