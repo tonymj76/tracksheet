@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -15,83 +14,6 @@ import (
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
 	"github.com/sirupsen/logrus"
-)
-
-const (
-	childrenSelector = "*"
-	href             = "href"
-	search           = "search"
-	linksSelector    = "[href]"
-	product          = "product"
-)
-
-var (
-	none = struct{}{}
-
-	visitMut   *sync.RWMutex
-	productMut *sync.RWMutex
-	allSiteMut *sync.RWMutex
-
-	waitgroup *sync.WaitGroup
-
-	allSiteLink map[string]int
-	visited     map[string]struct{}
-)
-
-type crawlconfig struct {
-	website string
-	depth   int
-}
-
-var (
-	// key words to identify a product link
-	keywordSet = map[string]struct{}{
-		"price":       none,
-		"add to cart": none,
-		"quantity":    none,
-		"rating":      none,
-		"save":        none,
-		"buy it now":  none,
-		"buy now":     none,
-		"cart":        none,
-		"buy":         none,
-	}
-
-	// keywords on url not to visit
-	skipSet = [...]string{
-		"career",
-		"coupons",
-		"deal",
-		"help",
-		"sitemap",
-		"blog",
-		"policy",
-		"checkout",
-		"content",
-		"account",
-		"login",
-		"log-in",
-		"contact",
-		"faq",
-		"privacy",
-		"about",
-		"customer",
-		"icon",
-		"sign-up",
-		"signup",
-		".css",
-		".js",
-		".png",
-		".jpeg",
-		".jpg",
-		".tiff",
-		".ico",
-		".pdf",
-		".docx",
-		".doc",
-		".woff2",
-		".woff",
-	}
 )
 
 // identify possible url
@@ -384,19 +306,6 @@ func minInt(a, b int) int {
 func getSelectorConfig(link, attr string) (*db.ProductSelector, error) {
 	product_selector, err := GetUrlConfig(link, attr)
 	return &product_selector, err
-}
-
-// parseURLFromSelector retrieves all the url links from the html body
-func parseURLFromSelector(matchString string) []string {
-	niceStr := []string{}
-	HTMLLinkPattern := `href=[^\s]+`
-	re := regexp.MustCompile(`(href=")`)
-	validString := regexp.MustCompile(HTMLLinkPattern)
-
-	for _, str := range validString.FindAllString(matchString, -1) {
-		niceStr = append(niceStr, strings.Split(re.ReplaceAllString(str, ""), `"`)[0])
-	}
-	return niceStr
 }
 
 func GetUrlConfig(url, attr_name string) (db.ProductSelector, error) {
