@@ -28,7 +28,6 @@ func main() {
 		crawler.GET("/searchproduct", controller.SearchProduct)
 		crawler.GET("/scrapsitemap", controller.CrawlerGetSitemapController)
 		crawler.POST("/addconfig", controller.AddSelectorConfig)
-		crawler.POST("/updateconfig", controller.UpdateSelectorConfig)
 		crawler.GET("/getconfig", controller.GetSelectorConfig)
 		crawler.GET("/deleteconfig", controller.DeleteSelectorConfig)
 		crawler.GET("/deleteallconfig", controller.DeleteAllUrlSelectors)
