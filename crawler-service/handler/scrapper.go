@@ -84,13 +84,15 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 	page.Timeout(1 * time.Minute)
 	// wait for page load
 	page.MustWaitLoad()
-	selectorConfic, err := getSelectorConfig(base.String(), "product_selector")
+	domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
+	selectorConfic, err := getSelectorConfig(domain, "product_selector")
 	if err != nil {
 		fmt.Println("error getting selector ", err)
 	}
 	switch {
 	case selectorConfic.AttrValue != nil:
 		var selector_config string
+
 		//parses the selector
 		if strings.HasPrefix(*selectorConfic.AttrValue, ".") {
 			selector_config = *selectorConfic.AttrValue
@@ -102,7 +104,7 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 
 		//get all nodes that contain the parsed selector
 		classSelector := page.MustElements(selector_config)
-
+		allLinks := page.MustElements(linksSelector)
 		//transverse the slice that has all the nodes
 		for _, link := range classSelector {
 			//extract href attr from parent node
@@ -124,9 +126,6 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 						parsed_url, _ := url.Parse(strings.TrimSpace(*child_href))
 						resolvedURL := base.ResolveReference(parsed_url)
 						resolvedURLString := resolvedURL.String()
-						allSiteMut.Lock()
-						allSiteLink[resolvedURLString] = crawl_config.depth - 1
-						allSiteMut.Unlock()
 
 						productMut.Lock()
 						db.SaveToDB(resolvedURLString)
@@ -141,13 +140,39 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 				parsed_url, _ := url.Parse(strings.TrimSpace(*href))
 				resolvedURL := base.ResolveReference(parsed_url)
 				resolvedURLString := resolvedURL.String()
-				allSiteMut.Lock()
-				allSiteLink[resolvedURLString] = crawl_config.depth - 1
-				allSiteMut.Unlock()
 
 				productMut.Lock()
 				db.SaveToDB(resolvedURLString)
 				productMut.Unlock()
+			}
+		}
+		// iterate all items in the link list
+		for _, link := range allLinks {
+
+			href, err := link.Attribute(`href`)
+			if err != nil {
+				logrus.Warnln("UNABLE TO GET HREF ", err)
+				continue
+			}
+			parsed_url, _ := url.Parse(strings.TrimSpace(*href))
+			resolvedURL := base.ResolveReference(parsed_url)
+			resolvedURLString := resolvedURL.String()
+			if base.Hostname() != resolvedURL.Hostname() {
+				continue
+			}
+
+			inSkipSet := false
+			for _, key := range skipSet {
+				if strings.Contains(resolvedURL.RequestURI(), key) {
+					inSkipSet = true
+					break
+				}
+			}
+			if !inSkipSet {
+
+				allSiteMut.Lock()
+				allSiteLink[resolvedURLString] = crawl_config.depth - 1
+				allSiteMut.Unlock()
 			}
 		}
 
