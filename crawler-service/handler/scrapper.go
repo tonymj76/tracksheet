@@ -168,42 +168,60 @@ func getLinks(base *url.URL, crawl_config crawlconfig) {
 	}
 	switch {
 	case selectorConfic.AttrValue != nil:
-		classSelector := page.MustElements(*selectorConfic.AttrValue)
-
-		domChildren := []string{}
-		for _, item := range classSelector {
-			domChildren = append(domChildren, parseURLFromSelector(item.MustHTML())...)
+		var selector_config string
+		if strings.HasPrefix(*selectorConfic.AttrValue, ".") {
+			selector_config = *selectorConfic.AttrValue
+			selector_config = strings.ReplaceAll(selector_config, " ", ".")
+		} else {
+			selector_config = fmt.Sprintf(".%v", *selectorConfic.AttrValue)
+			selector_config = strings.ReplaceAll(selector_config, " ", ".")
 		}
-		for _, child := range domChildren {
-			parsed_url, err := url.Parse(strings.TrimSpace(child))
-			if err != nil {
-				continue
-			}
-			resolvedURL := base.ResolveReference(parsed_url)
-			resolvedURLString := resolvedURL.String()
+		classSelector := page.MustElements(selector_config)
 
-			// skip if not same hostname
-			if base.Hostname() != resolvedURL.Hostname() {
-				continue
-			}
+		for _, link := range classSelector {
+			href, _ := link.Attribute(`href`)
 
-			for _, key := range skipSet {
-				if strings.Contains(resolvedURL.RequestURI(), key) {
+			if href == nil {
+				children, err := link.Elements(childrenSelector)
+				if err != nil {
+					fmt.Println("error parsing children ", err)
 					continue
 				}
+
+				for _, child := range children {
+					child_href, _ := child.Attribute(`href`)
+					if child_href != nil {
+						parsed_url, _ := url.Parse(strings.TrimSpace(*child_href))
+						resolvedURL := base.ResolveReference(parsed_url)
+						resolvedURLString := resolvedURL.String()
+						allSiteMut.Lock()
+						allSiteLink[resolvedURLString] = crawl_config.depth - 1
+						allSiteMut.Unlock()
+
+						productMut.Lock()
+						db.SaveToDB(resolvedURLString)
+						productMut.Unlock()
+
+					}
+				}
+
+			} else {
+				parsed_url, _ := url.Parse(strings.TrimSpace(*href))
+				resolvedURL := base.ResolveReference(parsed_url)
+				resolvedURLString := resolvedURL.String()
+				allSiteMut.Lock()
+				allSiteLink[resolvedURLString] = crawl_config.depth - 1
+				allSiteMut.Unlock()
+
+				productMut.Lock()
+				db.SaveToDB(resolvedURLString)
+				productMut.Unlock()
 			}
-
-			allSiteMut.Lock()
-			allSiteLink[resolvedURLString] = crawl_config.depth - 1
-			allSiteMut.Unlock()
-
-			productMut.Lock()
-			db.SaveToDB(resolvedURLString)
-			productMut.Unlock()
 		}
-		fmt.Println("am in my >>>>>>>>>>>>>>>>>>>>>>>>>>...")
+
+		fmt.Println("Getiing with product selector.....")
 	default:
-		fmt.Println("am in default >>>>>>>>>>>>>>>>>>>>>>>>>>...")
+		fmt.Println("Getting via recursion.......")
 		allLinks := page.MustElements(linksSelector)
 		// iterate all items in the link list
 		for _, link := range allLinks {
