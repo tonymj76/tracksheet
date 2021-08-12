@@ -48,7 +48,6 @@ func isPossibleProductURL(element *rod.Element, href string) bool {
 			if strings.Contains(val.String(), "img") {
 				return true
 			}
-
 		}
 
 		// get the href in the children node and recursively visit those too
@@ -71,18 +70,26 @@ func isPossibleProductURL(element *rod.Element, href string) bool {
 	return false
 }
 
-func getLinks(base *url.URL, crawlConfig crawlConfiguration) {
-	// create a rod instance with user agent
-	page := rod.New().MustConnect().MustPage(base.String())
-	defer page.Close()
-
-	userAgentHeaderOverride := proto.NetworkSetUserAgentOverride{
+func setupPage(page string) *rod.Page {
+	userAgentConfig := proto.NetworkSetUserAgentOverride{
 		UserAgent: config.GetEnv("userAgent"),
 	}
-	page.SetUserAgent(&userAgentHeaderOverride)
-	// timeout
-	page.Timeout(1 * time.Minute)
-	// wait for page load
+
+	// browser exists?
+	if browser != nil {
+		return browser.MustPage(page).MustSetUserAgent(&userAgentConfig).Timeout(1 * time.Minute)
+	}
+
+	browser = rod.New().MustConnect()
+
+	return browser.MustPage(page).MustSetUserAgent(&userAgentConfig).Timeout(1 * time.Minute)
+}
+
+func getLinks(base *url.URL, crawlConfig crawlConfiguration) {
+	// create a rod instance with user agent
+	page := setupPage(base.String())
+	defer page.Close()
+
 	page.MustWaitLoad()
 	domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
 	selectorConfic, err := getSelectorConfig(domain, "product_selector")
@@ -93,7 +100,7 @@ func getLinks(base *url.URL, crawlConfig crawlConfiguration) {
 	case selectorConfic.AttrValue != nil:
 		var selectorConfig string
 
-		//parses the selector
+		// parses the selector
 		if strings.HasPrefix(*selectorConfic.AttrValue, ".") {
 			selectorConfig = *selectorConfic.AttrValue
 			selectorConfig = strings.ReplaceAll(selectorConfig, " ", ".")
@@ -102,16 +109,16 @@ func getLinks(base *url.URL, crawlConfig crawlConfiguration) {
 			selectorConfig = strings.ReplaceAll(selectorConfig, " ", ".")
 		}
 
-		//get all nodes that contain the parsed selector
+		// get all nodes that contain the parsed selector
 		classSelector := page.MustElements(selectorConfig)
 		allLinks := page.MustElements(linksSelector)
-		//transverse the slice that has all the nodes
+		// transverse the slice that has all the nodes
 		for _, link := range classSelector {
-			//extract href attr from parent node
+			// extract href attr from parent node
 			href, _ := link.Attribute(`href`)
 
-			//if no href is found in parent node
-			//transverse child node for href attr
+			// if no href is found in parent node
+			// transverse child node for href attr
 			if href == nil {
 				children, err := link.Elements(childrenSelector)
 				if err != nil {
@@ -121,7 +128,7 @@ func getLinks(base *url.URL, crawlConfig crawlConfiguration) {
 
 				for _, child := range children {
 					childHref, _ := child.Attribute(`href`)
-					//if href found, add to DB
+					// if href found, add to DB
 					if childHref != nil {
 						parsedURL, _ := url.Parse(strings.TrimSpace(*childHref))
 						resolvedURL := base.ResolveReference(parsedURL)
@@ -135,8 +142,8 @@ func getLinks(base *url.URL, crawlConfig crawlConfiguration) {
 				}
 
 			} else {
-				//if href found in parent node
-				//add to DB
+				// if href found in parent node
+				// add to DB
 				parsedURL, _ := url.Parse(strings.TrimSpace(*href))
 				resolvedURL := base.ResolveReference(parsedURL)
 				resolvedURLString := resolvedURL.String()

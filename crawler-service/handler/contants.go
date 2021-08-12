@@ -1,6 +1,10 @@
 package handler
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/go-rod/rod"
+)
 
 const (
 	childrenSelector = "*"
@@ -12,6 +16,8 @@ const (
 
 var (
 	none = struct{}{}
+
+	browser *rod.Browser
 
 	visitMut   *sync.RWMutex
 	productMut *sync.RWMutex
