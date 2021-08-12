@@ -1,15 +1,9 @@
 # Crawling Service
 
-- [Overview :notebook_with_decorative_cover:](#overview-notebook_with_decorative_cover)
 - [Setting up :gear:](#Setting-up-gear)
 - [Accessing end points](#Accessing-end-points)
 
-## Overview :notebook_with_decorative_cover
 
-There is two search Engine implemented.
-
-- The 1st solution takes in the URL or zipped sitemap of the site to crawl. If a URL is provided, it will search the robots.txt file and get the XML sitemap which returns all the product links in the XML files, while if a zipped sitemap is provided it parse it and return the product links.
-- The 2nd solution usings recursive page depth to get all the links of the product URL.
 
 ## Setting up :gear
 
@@ -26,6 +20,9 @@ eg
 }
 
 ```
+
+* Be sure to have a progresql DB setup
+* To start the service run `go run service.go`
 
 
 
