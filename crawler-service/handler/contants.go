@@ -23,7 +23,7 @@ var (
 	visited     map[string]struct{}
 )
 
-type crawlconfig struct {
+type crawlConfiguration struct {
 	website string
 	depth   int
 }

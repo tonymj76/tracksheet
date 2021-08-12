@@ -36,7 +36,7 @@ func CrawlerGetController(context *gin.Context) {
 		return
 	}
 
-	handler.GetUrl(link, depth_val, worker_val)
+	handler.GetURL(link, depth_val, worker_val)
 	context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
 
 }
