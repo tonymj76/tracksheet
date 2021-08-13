@@ -1,6 +1,10 @@
 package handler
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/go-rod/rod"
+)
 
 const (
 	childrenSelector = "*"
@@ -13,6 +17,8 @@ const (
 var (
 	none = struct{}{}
 
+	browser *rod.Browser
+
 	visitMut   *sync.RWMutex
 	productMut *sync.RWMutex
 	allSiteMut *sync.RWMutex
@@ -23,7 +29,7 @@ var (
 	visited     map[string]struct{}
 )
 
-type crawlconfig struct {
+type crawlConfiguration struct {
 	website string
 	depth   int
 }

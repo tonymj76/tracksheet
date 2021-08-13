@@ -48,7 +48,6 @@ func isPossibleProductURL(element *rod.Element, href string) bool {
 			if strings.Contains(val.String(), "img") {
 				return true
 			}
-
 		}
 
 		// get the href in the children node and recursively visit those too
@@ -71,18 +70,26 @@ func isPossibleProductURL(element *rod.Element, href string) bool {
 	return false
 }
 
-func getLinks(base *url.URL, crawl_config crawlconfig, selector_config []db.ProductSelector) {
-	// create a rod instance with user agent
-	page := rod.New().MustConnect().MustPage(base.String())
-	defer page.Close()
-
-	userAgentHeaderOverride := proto.NetworkSetUserAgentOverride{
+func setupPage(page string) *rod.Page {
+	userAgentConfig := proto.NetworkSetUserAgentOverride{
 		UserAgent: config.GetEnv("userAgent"),
 	}
-	page.SetUserAgent(&userAgentHeaderOverride)
-	// timeout
-	page.Timeout(1 * time.Minute)
-	// wait for page load
+
+	// browser exists?
+	if browser != nil {
+		return browser.MustPage(page).MustSetUserAgent(&userAgentConfig).Timeout(1 * time.Minute)
+	}
+
+	browser = rod.New().MustConnect()
+
+	return browser.MustPage(page).MustSetUserAgent(&userAgentConfig).Timeout(1 * time.Minute)
+}
+
+func getLinks(base *url.URL, crawlConfig crawlConfiguration, selector_config []db.ProductSelector) {
+	// create a rod instance with user agent
+	page := setupPage(base.String())
+	defer page.Close()
+
 	page.MustWaitLoad()
 
 	switch {
@@ -143,8 +150,8 @@ func getLinks(base *url.URL, crawl_config crawlconfig, selector_config []db.Prod
 				logrus.Warnln("UNABLE TO GET HREF ", err)
 				continue
 			}
-			parsed_url, _ := url.Parse(strings.TrimSpace(*href))
-			resolvedURL := base.ResolveReference(parsed_url)
+			parsedURL, _ := url.Parse(strings.TrimSpace(*href))
+			resolvedURL := base.ResolveReference(parsedURL)
 			resolvedURLString := resolvedURL.String()
 			if base.Hostname() != resolvedURL.Hostname() {
 				continue
@@ -160,7 +167,7 @@ func getLinks(base *url.URL, crawl_config crawlconfig, selector_config []db.Prod
 			if !inSkipSet {
 
 				allSiteMut.Lock()
-				allSiteLink[resolvedURLString] = crawl_config.depth - 1
+				allSiteLink[resolvedURLString] = crawlConfig.depth - 1
 				allSiteMut.Unlock()
 			}
 		}
@@ -178,13 +185,13 @@ func getLinks(base *url.URL, crawl_config crawlconfig, selector_config []db.Prod
 				continue
 			}
 
-			parsed_url, err := url.Parse(strings.TrimSpace(*href))
+			parsedURL, err := url.Parse(strings.TrimSpace(*href))
 			if err != nil {
 				logrus.Warnf("unable to parse link:%s\n%v", *href, err)
 				continue
 			}
 
-			resolvedURL := base.ResolveReference(parsed_url)
+			resolvedURL := base.ResolveReference(parsedURL)
 			resolvedURLString := resolvedURL.String()
 
 			// skip if not same hostname
@@ -205,7 +212,7 @@ func getLinks(base *url.URL, crawl_config crawlconfig, selector_config []db.Prod
 
 				// write
 				allSiteMut.Lock()
-				allSiteLink[resolvedURLString] = crawl_config.depth - 1
+				allSiteLink[resolvedURLString] = crawlConfig.depth - 1
 				allSiteMut.Unlock()
 				// check if it's product URL
 				possible := isPossibleProductURL(link, resolvedURLString)
@@ -220,39 +227,44 @@ func getLinks(base *url.URL, crawl_config crawlconfig, selector_config []db.Prod
 }
 
 // get all links on page
-func getAllLinksOnPage(crawl_config crawlconfig, selector_config []db.ProductSelector) {
-	crawl_config.website = strings.TrimSpace(crawl_config.website)
+func getAllLinksOnPage(crawlConfig crawlConfiguration, selector_config []db.ProductSelector) {
+	if err := sem.Acquire(semCtx, 1); err != nil {
+		logrus.Warnf("failed to acquire semaphore %v\n", err)
+	}
+
+	crawlConfig.website = strings.TrimSpace(crawlConfig.website)
 
 	// visited?
 	visitMut.RLock()
-	_, ok := visited[crawl_config.website]
+	_, ok := visited[crawlConfig.website]
 	visitMut.RUnlock()
 
-	if !ok && crawl_config.depth >= 0 {
+	if !ok && crawlConfig.depth >= 0 {
 		// mark visited
 		visitMut.Lock()
-		visited[crawl_config.website] = none
+		visited[crawlConfig.website] = none
 		visitMut.Unlock()
 
-		base, err := url.Parse(crawl_config.website)
+		base, err := url.Parse(crawlConfig.website)
 		if err != nil {
-			logrus.Warnf("unable to parse website: %s\n%v", crawl_config.website, err)
+			logrus.Warnf("unable to parse website: %s\n%v", crawlConfig.website, err)
 			return
 		}
 
 		tryError := rod.Try(func() {
-			getLinks(base, crawl_config, selector_config)
+			getLinks(base, crawlConfig, selector_config)
 		})
 
 		if errors.Is(tryError, context.DeadlineExceeded) {
 			// code for timeout error
-			logrus.Errorf("TIMEOUT ON %s", crawl_config.website, tryError)
+			logrus.Errorf("TIMEOUT ON %s", crawlConfig.website, tryError)
 		} else if tryError != nil {
 			// code for other types of error
-			logrus.Errorf("ERROR ON %v %v", crawl_config.website, tryError)
+			logrus.Errorf("ERROR ON %v %v", crawlConfig.website, tryError)
 		}
 	}
 
+	sem.Release(1)
 	waitgroup.Done()
 }
 
@@ -266,7 +278,7 @@ func GetUrl(website string, depth, worker int, selector_config []db.ProductSelec
 	productMut = &sync.RWMutex{}
 	allSiteMut = &sync.RWMutex{}
 
-	config := crawlconfig{website: website, depth: depth}
+	config := crawlConfiguration{website: website, depth: depth}
 
 	allSiteLink = map[string]int{}
 	visited = map[string]struct{}{}
@@ -299,7 +311,7 @@ func GetUrl(website string, depth, worker int, selector_config []db.ProductSelec
 			// visited[keys[i].key] = none
 			delete(allSiteLink, keys[i].key)
 
-			newConfig := crawlconfig{website: keys[i].key, depth: keys[i].depth - 1}
+			newConfig := crawlConfiguration{website: keys[i].key, depth: keys[i].depth - 1}
 			waitgroup.Add(1)
 			go getAllLinksOnPage(newConfig, selector_config)
 		}
