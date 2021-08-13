@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,6 +24,8 @@ func CrawlerGetController(context *gin.Context) {
 	link := context.Query("link")
 	depth := context.DefaultQuery("depth", "5")
 	worker := context.DefaultQuery("worker", "5")
+	var config []db.ProductSelector
+
 	depth_val, err := strconv.Atoi(depth)
 	if err != nil {
 		log.Fatal("error parsing depth to int ", err)
@@ -35,8 +39,16 @@ func CrawlerGetController(context *gin.Context) {
 		log.Panicln("please provide a link in the query to crawl")
 		return
 	}
+	base, err := url.Parse(link)
+	if err != nil {
+		log.Panicln("error parsing string to url ", err)
+		return
+	}
 
-	handler.GetUrl(link, depth_val, worker_val)
+	domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
+	attr_name := "product_selector"
+	db.DB.Where("root_url = ?", &domain).Where("attr_name = ?", attr_name).Find(&config)
+	handler.GetUrl(link, depth_val, worker_val, config)
 	context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
 
 }
@@ -98,10 +110,19 @@ func SearchProduct(context *gin.Context) {
 
 func AddSelectorConfig(context *gin.Context) {
 	var input SelectorConfig
+	var selector_config string
 
 	if err := context.ShouldBindJSON(&input); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
+	}
+
+	if strings.HasPrefix(input.AttrValue, ".") {
+		selector_config = input.AttrValue
+		selector_config = strings.ReplaceAll(selector_config, " ", ".")
+	} else {
+		selector_config = fmt.Sprintf(".%v", input.AttrValue)
+		selector_config = strings.ReplaceAll(selector_config, " ", ".")
 	}
 	//root url value should not empty
 	if input.RootURL == "" {
@@ -112,7 +133,7 @@ func AddSelectorConfig(context *gin.Context) {
 	//if a root url and attr name does not exist for a value, add it
 	selector := db.ProductSelector{
 		AttrName:  &input.AttrName,
-		AttrValue: &input.AttrValue,
+		AttrValue: &selector_config,
 		RootURL:   &input.RootURL,
 	}
 	error := db.DB.Create(&selector).Error
