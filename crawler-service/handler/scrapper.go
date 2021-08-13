@@ -14,6 +14,7 @@ import (
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/semaphore"
 )
 
 // identify possible url
@@ -91,7 +92,7 @@ func getLinks(base *url.URL, crawlConfig crawlConfiguration) {
 	defer page.Close()
 
 	page.MustWaitLoad()
-	
+
 	domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
 	selectorConfic, err := getSelectorConfig(domain, "product_selector")
 	if err != nil {
@@ -240,6 +241,10 @@ func getLinks(base *url.URL, crawlConfig crawlConfiguration) {
 
 // get all links on page
 func getAllLinksOnPage(crawlConfig crawlConfiguration) {
+	if err := sem.Acquire(semCtx, 1); err != nil {
+		logrus.Warnf("failed to acquire semaphore %v\n", err)
+	}
+
 	crawlConfig.website = strings.TrimSpace(crawlConfig.website)
 
 	// visited?
@@ -272,6 +277,7 @@ func getAllLinksOnPage(crawlConfig crawlConfiguration) {
 		}
 	}
 
+	sem.Release(1)
 	waitgroup.Done()
 }
 
@@ -285,6 +291,9 @@ func GetURL(website string, depth, worker int) {
 	visitMut = &sync.RWMutex{}
 	productMut = &sync.RWMutex{}
 	allSiteMut = &sync.RWMutex{}
+
+	semCtx = context.TODO()
+	sem = semaphore.NewWeighted(int64(numWorkers))
 
 	config := crawlConfiguration{website: website, depth: depth}
 

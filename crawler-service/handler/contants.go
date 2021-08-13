@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"context"
 	"sync"
 
 	"github.com/go-rod/rod"
+	"golang.org/x/sync/semaphore"
 )
 
 const (
@@ -18,6 +20,9 @@ var (
 	none = struct{}{}
 
 	browser *rod.Browser
+
+	semCtx context.Context
+	sem    *semaphore.Weighted
 
 	visitMut   *sync.RWMutex
 	productMut *sync.RWMutex
