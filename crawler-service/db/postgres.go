@@ -46,12 +46,20 @@ func CreateDBConnection() {
 // pagination hook
 func Paginate(context *gin.Context) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		page, _ := strconv.Atoi(context.DefaultQuery("page", "0"))
+		page, err := strconv.Atoi(context.DefaultQuery("page", "0"))
+		if err != nil {
+			logrus.WithError(err).Fatalln("error parsing page to number switching to default value :", err)
+			page = 0
+		}
 		if page == 0 {
 			page = 1
 		}
 
-		pageSize, _ := strconv.Atoi(context.DefaultQuery("limit", "100"))
+		pageSize, err := strconv.Atoi(context.DefaultQuery("limit", "100"))
+		if err != nil {
+			logrus.WithError(err).Fatalln("error parsing page limit to number switching to default value :", err)
+			pageSize = 100
+		}
 		switch {
 		case pageSize > 100:
 			pageSize = 100
