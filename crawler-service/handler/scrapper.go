@@ -14,6 +14,7 @@ import (
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/semaphore"
 )
 
 // identify possible url
@@ -277,6 +278,9 @@ func GetUrl(website string, depth, worker int, selector_config []db.ProductSelec
 	visitMut = &sync.RWMutex{}
 	productMut = &sync.RWMutex{}
 	allSiteMut = &sync.RWMutex{}
+
+	semCtx = context.TODO()
+	sem = semaphore.NewWeighted(int64(numWorkers))
 
 	config := crawlConfiguration{website: website, depth: depth}
 
