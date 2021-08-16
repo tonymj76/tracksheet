@@ -86,7 +86,7 @@ func setupPage(page string) *rod.Page {
 	return browser.MustPage(page).MustSetUserAgent(&userAgentConfig).Timeout(1 * time.Minute)
 }
 
-func getLinks(base *url.URL, crawlConfig crawlConfiguration, selector_config []db.ProductSelector) {
+func getLinks(base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector) {
 	// create a rod instance with user agent
 	page := setupPage(base.String())
 	defer page.Close()
@@ -94,16 +94,16 @@ func getLinks(base *url.URL, crawlConfig crawlConfiguration, selector_config []d
 	page.MustWaitLoad()
 
 	switch {
-	case len(selector_config) > 0:
-		queryWithSelector(page, base, crawlConfig, selector_config)
+	case len(selectorConfig) > 0:
+		queryWithSelector(page, base, crawlConfig, selectorConfig)
 	default:
-		queryRecursively(page, base, crawlConfig, selector_config)
+		queryRecursively(page, base, crawlConfig, selectorConfig)
 
 	}
 }
 
 // get all links on page
-func getAllLinksOnPage(crawlConfig crawlConfiguration, selector_config []db.ProductSelector) {
+func getAllLinksOnPage(crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector) {
 	if err := sem.Acquire(semCtx, 1); err != nil {
 		logrus.Warnf("failed to acquire semaphore %v\n", err)
 	}
@@ -111,15 +111,11 @@ func getAllLinksOnPage(crawlConfig crawlConfiguration, selector_config []db.Prod
 	crawlConfig.website = strings.TrimSpace(crawlConfig.website)
 
 	// visited?
-	visitMut.RLock()
-	_, ok := visited[crawlConfig.website]
-	visitMut.RUnlock()
+	_, ok := visited.Load(crawlConfig.website)
 
 	if !ok && crawlConfig.depth >= 0 {
 		// mark visited
-		visitMut.Lock()
-		visited[crawlConfig.website] = none
-		visitMut.Unlock()
+		visited.Store(crawlConfig.website, none)
 
 		base, err := url.Parse(crawlConfig.website)
 		if err != nil {
@@ -128,7 +124,7 @@ func getAllLinksOnPage(crawlConfig crawlConfiguration, selector_config []db.Prod
 		}
 
 		tryError := rod.Try(func() {
-			getLinks(base, crawlConfig, selector_config)
+			getLinks(base, crawlConfig, selectorConfig)
 		})
 
 		if errors.Is(tryError, context.DeadlineExceeded) {
@@ -144,27 +140,23 @@ func getAllLinksOnPage(crawlConfig crawlConfiguration, selector_config []db.Prod
 	waitgroup.Done()
 }
 
-func GetUrl(website string, depth, worker int, selector_config []db.ProductSelector) {
+// GetURL gets the links in a URL
+func GetURL(website string, depth, worker int, selectorConfig []db.ProductSelector) {
 	// number of workers
 	numWorkers := worker
 
 	waitgroup = &sync.WaitGroup{}
 
-	visitMut = &sync.RWMutex{}
 	productMut = &sync.RWMutex{}
-	allSiteMut = &sync.RWMutex{}
 
 	semCtx = context.TODO()
 	sem = semaphore.NewWeighted(int64(numWorkers))
 
 	config := crawlConfiguration{website: website, depth: depth}
 
-	allSiteLink = map[string]int{}
-	visited = map[string]struct{}{}
-
 	// get root urls
 	waitgroup.Add(1)
-	go getAllLinksOnPage(config, selector_config)
+	go getAllLinksOnPage(config, selectorConfig)
 	waitgroup.Wait()
 
 	type kvPair struct {
@@ -174,11 +166,12 @@ func GetUrl(website string, depth, worker int, selector_config []db.ProductSelec
 
 	keys := []kvPair{}
 
-	for k, v := range allSiteLink {
-		if _, ok := visited[k]; !ok {
-			keys = append(keys, kvPair{k, v})
+	allSiteLink.Range(func(k, v interface{}) bool {
+		if _, ok := visited.Load(k); !ok {
+			keys = append(keys, kvPair{k.(string), v.(int)})
 		}
-	}
+		return true
+	})
 
 	for len(keys) > 0 {
 		size := minInt(len(keys), numWorkers)
@@ -187,25 +180,24 @@ func GetUrl(website string, depth, worker int, selector_config []db.ProductSelec
 			depth := keys[i].depth
 			fmt.Println("DEPTH::::::::", depth)
 
-			// visited[keys[i].key] = none
-			delete(allSiteLink, keys[i].key)
+			allSiteLink.Delete(keys[i].key)
 
 			newConfig := crawlConfiguration{website: keys[i].key, depth: keys[i].depth - 1}
 			waitgroup.Add(1)
-			go getAllLinksOnPage(newConfig, selector_config)
+			go getAllLinksOnPage(newConfig, selectorConfig)
 		}
 
 		waitgroup.Wait()
 
 		keys = keys[size:]
 
-		// add new keys
-		for key, value := range allSiteLink {
-			if _, ok := visited[key]; !ok {
-				keys = append(keys, kvPair{key: key, depth: value - 1})
-				delete(allSiteLink, key)
+		allSiteLink.Range(func(k, v interface{}) bool {
+			if _, ok := visited.Load(k); !ok {
+				keys = append(keys, kvPair{key: k.(string), depth: v.(int) - 1})
+				allSiteLink.Delete(k)
 			}
-		}
+			return true
+		})
 	}
 
 	fmt.Println("---", len(keys))

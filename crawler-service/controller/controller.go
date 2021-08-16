@@ -48,7 +48,7 @@ func CrawlerGetController(context *gin.Context) {
 	domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
 	attr_name := "product_selector"
 	db.DB.Where("root_url = ?", &domain).Where("attr_name = ?", attr_name).Find(&config)
-	handler.GetUrl(link, depth_val, worker_val, config)
+	handler.GetURL(link, depth_val, worker_val, config)
 	context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
 
 }

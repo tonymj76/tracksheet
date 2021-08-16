@@ -1,14 +1,12 @@
 package handler
 
 import (
-	"context"
-	"sync"
-
 	"cache_service/crawler-service/db"
+	"context"
 	"fmt"
 	"net/url"
-
 	"strings"
+	"sync"
 
 	"github.com/go-rod/rod"
 	"github.com/sirupsen/logrus"
@@ -31,14 +29,12 @@ var (
 	semCtx context.Context
 	sem    *semaphore.Weighted
 
-	visitMut   *sync.RWMutex
 	productMut *sync.RWMutex
-	allSiteMut *sync.RWMutex
 
 	waitgroup *sync.WaitGroup
 
-	allSiteLink map[string]int
-	visited     map[string]struct{}
+	visited     sync.Map
+	allSiteLink sync.Map
 )
 
 type crawlConfiguration struct {
@@ -97,19 +93,19 @@ var (
 	}
 )
 
-func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selector_config []db.ProductSelector) {
+func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector) {
 	allLinks := page.MustElements(linksSelector)
 
-	for _, product_selector := range selector_config {
-		//get all nodes that contain the parsed selector
-		classSelector := page.MustElements(*product_selector.AttrValue)
-		//transverse the slice that has all the nodes
+	for _, productSelector := range selectorConfig {
+		// get all nodes that contain the parsed selector
+		classSelector := page.MustElements(*productSelector.AttrValue)
+		// transverse the slice that has all the nodes
 		for _, link := range classSelector {
-			//extract href attr from parent node
+			// extract href attr from parent node
 			href, _ := link.Attribute(`href`)
 
-			//if no href is found in parent node
-			//transverse child node for href attr
+			// if no href is found in parent node
+			// transverse child node for href attr
 			if href == nil {
 				children, err := link.Elements(childrenSelector)
 				if err != nil {
@@ -118,11 +114,11 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 				}
 
 				for _, child := range children {
-					child_href, _ := child.Attribute(`href`)
-					//if href found, add to DB
-					if child_href != nil {
-						parsed_url, _ := url.Parse(strings.TrimSpace(*child_href))
-						resolvedURL := base.ResolveReference(parsed_url)
+					childHref, _ := child.Attribute(`href`)
+					// if href found, add to DB
+					if childHref != nil {
+						parsedURL, _ := url.Parse(strings.TrimSpace(*childHref))
+						resolvedURL := base.ResolveReference(parsedURL)
 						resolvedURLString := resolvedURL.String()
 
 						productMut.Lock()
@@ -133,10 +129,10 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 				}
 
 			} else {
-				//if href found in parent node
-				//add to DB
-				parsed_url, _ := url.Parse(strings.TrimSpace(*href))
-				resolvedURL := base.ResolveReference(parsed_url)
+				// if href found in parent node
+				// add to DB
+				parsedURL, _ := url.Parse(strings.TrimSpace(*href))
+				resolvedURL := base.ResolveReference(parsedURL)
 				resolvedURLString := resolvedURL.String()
 
 				productMut.Lock()
@@ -169,17 +165,14 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 			}
 		}
 		if !inSkipSet {
-
-			allSiteMut.Lock()
-			allSiteLink[resolvedURLString] = crawlConfig.depth - 1
-			allSiteMut.Unlock()
+			allSiteLink.Store(resolvedURLString, crawlConfig.depth-1)
 		}
 	}
 
 	fmt.Println("Getiing with product selector.....")
 }
 
-func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selector_config []db.ProductSelector) {
+func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector) {
 	fmt.Println("Getting via recursion.......")
 	allLinks := page.MustElements(linksSelector)
 	// iterate all items in the link list
@@ -217,9 +210,8 @@ func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfigurat
 		if !inSkipSet {
 
 			// write
-			allSiteMut.Lock()
-			allSiteLink[resolvedURLString] = crawlConfig.depth - 1
-			allSiteMut.Unlock()
+			allSiteLink.Store(resolvedURLString, crawlConfig.depth-1)
+
 			// check if it's product URL
 			possible := isPossibleProductURL(link, resolvedURLString)
 			if possible {
