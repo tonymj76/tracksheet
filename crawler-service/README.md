@@ -3,7 +3,7 @@
 - [Crawling Service](#crawling-service)
   - [Setting up :gear](#setting-up-gear)
   - [RUNNING THE CRAWLER](#running-the-crawler)
-    - [Accessing end points](#accessing-end-points)
+  - [Accessing end points](#accessing-end-points)
     - [Aamzon setup](#aamzon-setup)
 
 
@@ -41,7 +41,7 @@ make start
 <hr />
 
 
-### Accessing end points
+## Accessing end points
 
 To access the crawl service access the end point GET `/crawler/scrap`, pass the following as queries
 
