@@ -10,11 +10,9 @@ import (
 )
 
 // Run is the entry point of the app
-// input url = [url string | xml.gz file], depth = int
-// depth MaxDept limits the recursion depth of visited URLs.
+// input url = [.xml | .xml.gz file],
 func Run(url string) handler.ReturnList {
-	url = strings.Trim(url, " ")
-
+	url = strings.TrimSpace(url)
 	conf := handler.NewConnect(logrus.New(), url, config.GetEnv("accept"), config.GetEnv("userAgent"))
 	return Match(conf)
 }
