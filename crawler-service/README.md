@@ -1,7 +1,10 @@
 # Crawling Service
 
-- [Setting up :gear:](#Setting-up-gear)
-- [Accessing end points](#Accessing-end-points)
+- [Crawling Service](#crawling-service)
+  - [Setting up :gear](#setting-up-gear)
+  - [RUNNING THE CRAWLER](#running-the-crawler)
+    - [Accessing end points](#accessing-end-points)
+    - [Aamzon setup](#aamzon-setup)
 
 
 
@@ -24,6 +27,18 @@ eg
 * Be sure to have a progresql DB setup
 * To start the service run `go run service.go`
 
+
+
+<hr />
+
+## RUNNING THE CRAWLER
+- Ensure you have [GNU Make](https://www.gnu.org/software/make/) installed
+
+```sh
+make start
+```
+
+<hr />
 
 
 ### Accessing end points
