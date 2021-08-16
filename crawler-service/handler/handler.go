@@ -23,11 +23,11 @@ type Connection struct {
 }
 
 const (
-	// url link to robots file
+	// RobotsURL is url link to robots file
 	RobotsURL = "%s://%s/robots.txt"
-	// regex here map a url with a space or no space but must end with .xml
+	// XMLPattern maps a url with a space or no space but must end with .xml
 	XMLPattern = `(?P<head>http[s]?:\/\/)(?P<host>[^\/\s]+\/)(?P<path>[^\s]*\.xml$)|(?P<path2>[^\s]*\.xml\s+$)`
-	// get the links in html file
+	// HTMLLinkPattern gets the links in html file
 	HTMLLinkPattern = `(?P<head>http[s]?:\/\/)(?P<host>%s\/)(?P<path>[^<">]+)`
 )
 
@@ -47,6 +47,7 @@ func NewConnect(logger *logrus.Logger, urlPath, accept, userAgent string) *Conne
 	}
 }
 
+// ReturnList returns a list of product details & errors
 type ReturnList struct {
 	// List of the product details
 	List  []string
@@ -143,8 +144,8 @@ func GoClient(urlPath string, connection *Connection) (*http.Response, error) {
 	var client http.Client
 	httpProxy := config.GetEnv("HTTP_PROXY")
 	if httpProxy != "" {
-		proxyUrl, _ := url.Parse(httpProxy)
-		client = http.Client{Timeout: 20 * time.Second, Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrl)}}
+		proxyURL, _ := url.Parse(httpProxy)
+		client = http.Client{Timeout: 20 * time.Second, Transport: &http.Transport{Proxy: http.ProxyURL(proxyURL)}}
 	} else {
 		client = http.Client{Timeout: 20 * time.Second}
 	}
