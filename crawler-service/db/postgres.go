@@ -55,14 +55,14 @@ func Paginate(context *gin.Context) func(db *gorm.DB) *gorm.DB {
 			page = 1
 		}
 
-		pageSize, err := strconv.Atoi(context.DefaultQuery("limit", "100"))
+		pageSize, err := strconv.Atoi(context.DefaultQuery("limit", "1000"))
 		if err != nil {
 			logrus.WithError(err).Fatalln("error parsing page limit to number switching to default value :", err)
-			pageSize = 100
+			pageSize = 1000
 		}
 		switch {
-		case pageSize > 100:
-			pageSize = 100
+		case pageSize > 1000:
+			pageSize = 1000
 		case pageSize <= 0:
 			pageSize = 10
 		}

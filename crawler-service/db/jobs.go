@@ -1,6 +1,8 @@
 package db
 
 import (
+	"strings"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -11,11 +13,12 @@ type Context struct {
 
 //save to db
 func SaveToDB(product string) {
-	var product_item URLProductLink
-	if err := DB.Where("product_url = ?", product).First(&product_item).Error; err != nil {
-		error := DB.Create(&URLProductLink{ProductURL: &product}).Error
-		if error != nil {
-			logrus.Warnln("ERROR WRITING TO DB  ", error)
+	error := DB.Create(&URLProductLink{ProductURL: &product}).Error
+	if error != nil {
+		if strings.Contains(error.Error(), "duplicate key value violates unique constraint") {
+			//do nothing
+		} else {
+			logrus.Warnln("ERROR WRITING TO DB ", error)
 		}
 	}
 }
