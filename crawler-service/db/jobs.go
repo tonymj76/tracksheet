@@ -11,11 +11,13 @@ type Context struct {
 
 //save to db
 func SaveToDB(product string) {
-	error := DB.Create(&URLProductLink{ProductURL: &product}).Error
-	if error != nil {
-		logrus.Warnln("ERROR WRITING TO DB  ", error)
+	var product_item URLProductLink
+	if err := DB.Where("product_url = ?", product).First(&product_item).Error; err != nil {
+		error := DB.Create(&URLProductLink{ProductURL: &product}).Error
+		if error != nil {
+			logrus.Warnln("ERROR WRITING TO DB  ", error)
+		}
 	}
-
 }
 
 func SaveSelector(selector, root_url string) {
