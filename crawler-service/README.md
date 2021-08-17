@@ -36,7 +36,7 @@ eg
 - Ensure you have [GNU Make](https://www.gnu.org/software/make/) installed
 
 ```sh
-make start
+make crawl
 ```
 
 <hr />
