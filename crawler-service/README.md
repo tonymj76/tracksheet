@@ -3,6 +3,7 @@
 - [Crawling Service](#crawling-service)
   - [Setting up :gear](#setting-up-gear)
   - [RUNNING THE CRAWLER](#running-the-crawler)
+  - [RUNNING THE CACHE SERVICE](#running-the-cache-service)
   - [Accessing end points](#accessing-end-points)
     - [Aamzon setup](#aamzon-setup)
 
@@ -37,6 +38,16 @@ eg
 
 ```sh
 make crawl
+```
+  
+<br /> <br />
+
+
+## RUNNING THE CACHE SERVICE
+- Ensure you have [GNU Make](https://www.gnu.org/software/make/) installed
+
+```sh
+make cache
 ```
 
 <hr />
