@@ -30,10 +30,12 @@ func CrawlerGetController(context *gin.Context) {
 	depth_val, err := strconv.Atoi(depth)
 	if err != nil {
 		log.Fatal("error parsing depth to int ", err)
+		return
 	}
 	worker_val, err := strconv.Atoi(worker)
 	if err != nil {
 		log.Fatal("error parsing worker to int ", err)
+		return
 	}
 
 	if link == "" {
@@ -191,4 +193,33 @@ func DeleteAllUrlSelectors(context *gin.Context) {
 	db.DB.Where("root_url = ?", link).Find(&config)
 	db.DB.Delete(&config)
 	context.JSON(http.StatusOK, gin.H{"success": true, "message": "delete config successful"})
+}
+
+func GetProductDetails(context *gin.Context) {
+	var product_details []db.ProductDetails
+	var count int64
+	search_query := context.Query("k")
+	if search_query == "" {
+		fmt.Println("Please provide a search string")
+		return
+	}
+	search := fmt.Sprintf("%%%s%%", search_query)
+	db.DB.Scopes(db.Paginate(context)).Where("product_url LIKE ?", search).Find(&product_details).Count(&count)
+	context.JSON(http.StatusOK,
+		gin.H{
+			"success": true,
+			"product": product_details,
+			"total":   count,
+		})
+}
+
+func DeleteProductDetails(context *gin.Context) {
+	var product_details db.ProductDetails
+	id := context.Param("id")
+	if err := db.DB.Where("id = ?", id).First(&product_details).Error; err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!", "success": false})
+		return
+	}
+	db.DB.Delete(&product_details)
+	context.JSON(http.StatusOK, gin.H{"success": true, "message": "delete deltails successful"})
 }
