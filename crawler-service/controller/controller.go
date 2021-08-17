@@ -217,7 +217,7 @@ func DeleteProductDetails(context *gin.Context) {
 	var product_details db.ProductDetails
 	id := context.Param("id")
 	if err := db.DB.Where("id = ?", id).First(&product_details).Error; err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!", "success": false})
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Record not found!", "success": false})
 		return
 	}
 	db.DB.Delete(&product_details)
