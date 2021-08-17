@@ -20,9 +20,15 @@ type (
 	}
 	ProductSelector struct {
 		gorm.Model
-		AttrName  *string `gorm:"not null"`
-		AttrValue *string `gorm:"not null"`
-		RootURL   *string `gorm:"not null"`
+		AttrName     *string `gorm:"not null"`
+		AttrSelector *string `gorm:"not null"`
+		RootURL      *string `gorm:"not null"`
+	}
+	ProductDetails struct {
+		gorm.Model
+		AttrName   *string `gorm:"not null"`
+		AttrValue  *string `gorm:"not null"`
+		ProductUrl *string `gorm:"not null"`
 	}
 )
 
@@ -36,7 +42,7 @@ func CreateDBConnection() {
 	if err != nil {
 		logrus.WithError(err).Fatalln("failed to initiate the db")
 	}
-	err = db.AutoMigrate(&URLProductLink{}, &ProductSelector{})
+	err = db.AutoMigrate(&URLProductLink{}, &ProductSelector{}, &ProductDetails{})
 	if err != nil {
 		logrus.WithError(err).Fatalln("error migrating")
 	}

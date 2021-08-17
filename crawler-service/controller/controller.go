@@ -15,9 +15,9 @@ import (
 )
 
 type SelectorConfig struct {
-	AttrName  string `json:"attrname"`
-	AttrValue string `json:"attrvalue"`
-	RootURL   string `json:"rooturl"`
+	AttrName     string `json:"attrname"`
+	AttrSelector string `json:"attrselector"`
+	RootURL      string `json:"rooturl"`
 }
 
 func CrawlerGetController(context *gin.Context) {
@@ -25,6 +25,7 @@ func CrawlerGetController(context *gin.Context) {
 	depth := context.DefaultQuery("depth", "5")
 	worker := context.DefaultQuery("worker", "5")
 	var config []db.ProductSelector
+	var other_config []db.ProductSelector
 
 	depth_val, err := strconv.Atoi(depth)
 	if err != nil {
@@ -48,7 +49,9 @@ func CrawlerGetController(context *gin.Context) {
 	domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
 	attr_name := "product_selector"
 	db.DB.Where("root_url = ?", &domain).Where("attr_name = ?", attr_name).Find(&config)
-	handler.GetURL(link, depth_val, worker_val, config)
+	db.DB.Where("root_url = ?", &domain).Not("attr_name = ?", attr_name).Find(&other_config)
+
+	handler.GetURL(link, depth_val, worker_val, config, other_config)
 	context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
 
 }
@@ -117,11 +120,11 @@ func AddSelectorConfig(context *gin.Context) {
 		return
 	}
 
-	if strings.HasPrefix(input.AttrValue, ".") {
-		selector_config = input.AttrValue
+	if strings.HasPrefix(input.AttrSelector, ".") {
+		selector_config = input.AttrSelector
 		selector_config = strings.ReplaceAll(selector_config, " ", ".")
 	} else {
-		selector_config = fmt.Sprintf(".%v", input.AttrValue)
+		selector_config = fmt.Sprintf(".%v", input.AttrSelector)
 		selector_config = strings.ReplaceAll(selector_config, " ", ".")
 	}
 	//root url value should not empty
@@ -132,9 +135,9 @@ func AddSelectorConfig(context *gin.Context) {
 
 	//if a root url and attr name does not exist for a value, add it
 	selector := db.ProductSelector{
-		AttrName:  &input.AttrName,
-		AttrValue: &selector_config,
-		RootURL:   &input.RootURL,
+		AttrName:     &input.AttrName,
+		AttrSelector: &selector_config,
+		RootURL:      &input.RootURL,
 	}
 	error := db.DB.Create(&selector).Error
 

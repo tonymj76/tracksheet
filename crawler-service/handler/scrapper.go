@@ -86,7 +86,7 @@ func setupPage(page string) *rod.Page {
 	return browser.MustPage(page).MustSetUserAgent(&userAgentConfig).Timeout(1 * time.Minute)
 }
 
-func getLinks(base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector) {
+func getLinks(base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector, otherSelector []db.ProductSelector) {
 	// create a rod instance with user agent
 	page := setupPage(base.String())
 	defer page.Close()
@@ -95,15 +95,15 @@ func getLinks(base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db
 
 	switch {
 	case len(selectorConfig) > 0:
-		queryWithSelector(page, base, crawlConfig, selectorConfig)
+		queryWithSelector(page, base, crawlConfig, selectorConfig, otherSelector)
 	default:
-		queryRecursively(page, base, crawlConfig, selectorConfig)
+		queryRecursively(page, base, crawlConfig, selectorConfig, otherSelector)
 
 	}
 }
 
 // get all links on page
-func getAllLinksOnPage(crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector) {
+func getAllLinksOnPage(crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector, otherSelector []db.ProductSelector) {
 	if err := sem.Acquire(semCtx, 1); err != nil {
 		logrus.Warnf("failed to acquire semaphore %v\n", err)
 	}
@@ -124,7 +124,7 @@ func getAllLinksOnPage(crawlConfig crawlConfiguration, selectorConfig []db.Produ
 		}
 
 		tryError := rod.Try(func() {
-			getLinks(base, crawlConfig, selectorConfig)
+			getLinks(base, crawlConfig, selectorConfig, otherSelector)
 		})
 
 		if errors.Is(tryError, context.DeadlineExceeded) {
@@ -141,7 +141,7 @@ func getAllLinksOnPage(crawlConfig crawlConfiguration, selectorConfig []db.Produ
 }
 
 // GetURL gets the links in a URL
-func GetURL(website string, depth, worker int, selectorConfig []db.ProductSelector) {
+func GetURL(website string, depth, worker int, selectorConfig []db.ProductSelector, otherSelector []db.ProductSelector) {
 	// number of workers
 	numWorkers := worker
 
@@ -156,7 +156,7 @@ func GetURL(website string, depth, worker int, selectorConfig []db.ProductSelect
 
 	// get root urls
 	waitgroup.Add(1)
-	go getAllLinksOnPage(config, selectorConfig)
+	go getAllLinksOnPage(config, selectorConfig, otherSelector)
 	waitgroup.Wait()
 
 	type kvPair struct {
@@ -184,7 +184,7 @@ func GetURL(website string, depth, worker int, selectorConfig []db.ProductSelect
 
 			newConfig := crawlConfiguration{website: keys[i].key, depth: keys[i].depth - 1}
 			waitgroup.Add(1)
-			go getAllLinksOnPage(newConfig, selectorConfig)
+			go getAllLinksOnPage(newConfig, selectorConfig, otherSelector)
 		}
 
 		waitgroup.Wait()

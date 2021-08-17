@@ -93,12 +93,12 @@ var (
 	}
 )
 
-func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector) {
+func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector, otherSelector []db.ProductSelector) {
 	allLinks := page.MustElements(linksSelector)
 
 	for _, productSelector := range selectorConfig {
 		// get all nodes that contain the parsed selector
-		classSelector := page.MustElements(*productSelector.AttrValue)
+		classSelector := page.MustElements(*productSelector.AttrSelector)
 		// transverse the slice that has all the nodes
 		for _, link := range classSelector {
 			// extract href attr from parent node
@@ -123,6 +123,7 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 
 						productMut.Lock()
 						db.SaveToDB(resolvedURLString)
+						getOtherDetails(page, resolvedURLString, otherSelector)
 						productMut.Unlock()
 
 					}
@@ -137,6 +138,7 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 
 				productMut.Lock()
 				db.SaveToDB(resolvedURLString)
+				getOtherDetails(page, resolvedURLString, otherSelector)
 				productMut.Unlock()
 			}
 		}
@@ -172,7 +174,7 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 	fmt.Println("Getiing with product selector.....")
 }
 
-func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector) {
+func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector, otherSelector []db.ProductSelector) {
 	fmt.Println("Getting via recursion.......")
 	allLinks := page.MustElements(linksSelector)
 	// iterate all items in the link list
@@ -217,8 +219,25 @@ func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfigurat
 			if possible {
 				productMut.Lock()
 				db.SaveToDB(resolvedURLString)
+				getOtherDetails(page, resolvedURLString, otherSelector)
 				productMut.Unlock()
 			}
 		}
+	}
+}
+
+func getOtherDetails(page *rod.Page, urlValue string, otherSelector []db.ProductSelector) {
+	for _, selector_item := range otherSelector {
+		classSelector := page.MustElements(*selector_item.AttrSelector)
+
+		for _, node := range classSelector {
+			text, err := node.Text()
+			if err != nil {
+				fmt.Println("error getting text item ", err)
+				continue
+			}
+			db.SaveOtherAttr(urlValue, *selector_item.AttrName, text)
+		}
+
 	}
 }
