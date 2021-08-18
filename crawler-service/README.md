@@ -85,9 +85,7 @@ To scrap a website sitemap, GET `/crawler/scrapsitemap` pass the following queri
 
 
 
-
-
-### Aamzon setup
+### Amazon setup
 * Upload the Go build and `env.json` to the amazon env with all the configuration options
 * Run the following command in the env to set up chromium (assuming it is a deb environment)
 `wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb`
