@@ -86,7 +86,7 @@ func setupPage(page string) *rod.Page {
 	return browser.MustPage(page).MustSetUserAgent(&userAgentConfig).Timeout(1 * time.Minute)
 }
 
-func getLinks(base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector, otherSelector []db.ProductSelector) {
+func getLinks(base *url.URL, crawlConfig crawlConfiguration, selectorConfig, otherSelector []db.ProductSelector) {
 	// create a rod instance with user agent
 	page := setupPage(base.String())
 	defer page.Close()
@@ -97,13 +97,13 @@ func getLinks(base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db
 	case len(selectorConfig) > 0:
 		queryWithSelector(page, base, crawlConfig, selectorConfig, otherSelector)
 	default:
-		queryRecursively(page, base, crawlConfig, selectorConfig, otherSelector)
+		queryRecursively(page, base, crawlConfig, otherSelector)
 
 	}
 }
 
 // get all links on page
-func getAllLinksOnPage(crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector, otherSelector []db.ProductSelector) {
+func getAllLinksOnPage(crawlConfig crawlConfiguration, selectorConfig, otherSelector []db.ProductSelector) {
 	if err := sem.Acquire(semCtx, 1); err != nil {
 		logrus.Warnf("failed to acquire semaphore %v\n", err)
 	}
@@ -141,7 +141,7 @@ func getAllLinksOnPage(crawlConfig crawlConfiguration, selectorConfig []db.Produ
 }
 
 // GetURL gets the links in a URL
-func GetURL(website string, depth, worker int, selectorConfig []db.ProductSelector, otherSelector []db.ProductSelector) {
+func GetURL(website string, depth, worker int, selectorConfig, otherSelector []db.ProductSelector) {
 	// number of workers
 	numWorkers := worker
 
