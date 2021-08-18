@@ -93,7 +93,7 @@ var (
 	}
 )
 
-func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector, otherSelector []db.ProductSelector) {
+func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selectorConfig, otherSelector []db.ProductSelector) {
 	allLinks := page.MustElements(linksSelector)
 
 	for _, productSelector := range selectorConfig {
@@ -102,7 +102,7 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 		// transverse the slice that has all the nodes
 		for _, link := range classSelector {
 			// extract href attr from parent node
-			href, _ := link.Attribute(`href`)
+			href := link.MustAttribute(`href`)
 
 			// if no href is found in parent node
 			// transverse child node for href attr
@@ -117,7 +117,10 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 					childHref, _ := child.Attribute(`href`)
 					// if href found, add to DB
 					if childHref != nil {
-						parsedURL, _ := url.Parse(strings.TrimSpace(*childHref))
+						parsedURL, err := url.Parse(strings.TrimSpace(*childHref))
+						if err != nil {
+							continue
+						}
 						resolvedURL := base.ResolveReference(parsedURL)
 						resolvedURLString := resolvedURL.String()
 
@@ -132,7 +135,10 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 			} else {
 				// if href found in parent node
 				// add to DB
-				parsedURL, _ := url.Parse(strings.TrimSpace(*href))
+				parsedURL, err := url.Parse(strings.TrimSpace(*href))
+				if err != nil {
+					continue
+				}
 				resolvedURL := base.ResolveReference(parsedURL)
 				resolvedURLString := resolvedURL.String()
 
@@ -152,7 +158,10 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 			logrus.Warnln("UNABLE TO GET HREF ", err)
 			continue
 		}
-		parsedURL, _ := url.Parse(strings.TrimSpace(*href))
+		parsedURL, err := url.Parse(strings.TrimSpace(*href))
+		if err != nil {
+			continue
+		}
 		resolvedURL := base.ResolveReference(parsedURL)
 		resolvedURLString := resolvedURL.String()
 		if base.Hostname() != resolvedURL.Hostname() {
@@ -174,7 +183,7 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 	fmt.Println("Getiing with product selector.....")
 }
 
-func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selectorConfig []db.ProductSelector, otherSelector []db.ProductSelector) {
+func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, otherSelector []db.ProductSelector) {
 	fmt.Println("Getting via recursion.......")
 	allLinks := page.MustElements(linksSelector)
 	// iterate all items in the link list
@@ -229,14 +238,11 @@ func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfigurat
 func getOtherDetails(page *rod.Page, urlValue string, otherSelector []db.ProductSelector) {
 	for _, selector_item := range otherSelector {
 		classSelector := page.MustElements(*selector_item.AttrSelector)
-
 		for _, node := range classSelector {
-			text, err := node.Text()
-			if err != nil {
-				fmt.Println("error getting text item ", err)
-				continue
+			text := node.MustText()
+			if text != "" {
+				db.SaveOtherAttr(urlValue, *selector_item.AttrName, text)
 			}
-			db.SaveOtherAttr(urlValue, *selector_item.AttrName, text)
 		}
 
 	}
