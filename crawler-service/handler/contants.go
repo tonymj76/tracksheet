@@ -60,6 +60,7 @@ var (
 	skipSet = [...]string{
 		"career",
 		"coupons",
+		"javascript",
 		"deal",
 		"help",
 		"sitemap",
@@ -74,6 +75,7 @@ var (
 		"faq",
 		"privacy",
 		"about",
+		"mailto",
 		"customer",
 		"icon",
 		"sign-up",
@@ -126,7 +128,7 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 
 						productMut.Lock()
 						db.SaveToDB(resolvedURLString)
-						getOtherDetails(page, resolvedURLString, otherSelector)
+						getOtherDetails(page, resolvedURLString, base, otherSelector)
 						productMut.Unlock()
 
 					}
@@ -144,7 +146,7 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 
 				productMut.Lock()
 				db.SaveToDB(resolvedURLString)
-				getOtherDetails(page, resolvedURLString, otherSelector)
+				getOtherDetails(page, resolvedURLString, base, otherSelector)
 				productMut.Unlock()
 			}
 		}
@@ -152,23 +154,23 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 
 	// iterate all items in the link list
 	for _, link := range allLinks {
+		inSkipSet := false
 
 		href, err := link.Attribute(`href`)
 		if err != nil {
 			logrus.Warnln("UNABLE TO GET HREF ", err)
-			continue
+			inSkipSet = true
 		}
 		parsedURL, err := url.Parse(strings.TrimSpace(*href))
 		if err != nil {
-			continue
+			inSkipSet = true
 		}
 		resolvedURL := base.ResolveReference(parsedURL)
 		resolvedURLString := resolvedURL.String()
 		if base.Hostname() != resolvedURL.Hostname() {
-			continue
+			inSkipSet = true
 		}
 
-		inSkipSet := false
 		for _, key := range skipSet {
 			if strings.Contains(resolvedURL.RequestURI(), key) {
 				inSkipSet = true
@@ -222,28 +224,37 @@ func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfigurat
 
 			// write
 			allSiteLink.Store(resolvedURLString, crawlConfig.depth-1)
+			getOtherDetails(page, resolvedURLString, base, otherSelector)
 
 			// check if it's product URL
 			possible := isPossibleProductURL(link, resolvedURLString)
 			if possible {
 				productMut.Lock()
 				db.SaveToDB(resolvedURLString)
-				getOtherDetails(page, resolvedURLString, otherSelector)
 				productMut.Unlock()
 			}
 		}
 	}
 }
 
-func getOtherDetails(page *rod.Page, urlValue string, otherSelector []db.ProductSelector) {
-	for _, selector_item := range otherSelector {
-		classSelector := page.MustElements(*selector_item.AttrSelector)
-		for _, node := range classSelector {
-			text := node.MustText()
-			if text != "" {
-				db.SaveOtherAttr(urlValue, *selector_item.AttrName, text)
+func getOtherDetails(page *rod.Page, urlValue string, base *url.URL, otherSelector []db.ProductSelector) {
+	parsed_url, err := url.Parse(urlValue)
+	if err != nil {
+		fmt.Println("error parsing url ", err)
+	} else {
+		if base.Hostname() == parsed_url.Hostname() {
+
+			for _, selector_item := range otherSelector {
+				classSelector := page.MustElements(*selector_item.AttrSelector)
+				for _, node := range classSelector {
+					text := node.MustText()
+					if text != "" {
+						db.SaveOtherAttr(urlValue, *selector_item.AttrName, text)
+					}
+				}
+
 			}
 		}
-
 	}
+
 }
