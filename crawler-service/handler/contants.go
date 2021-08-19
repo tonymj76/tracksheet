@@ -248,8 +248,9 @@ func getOtherDetails(page *rod.Page, urlValue string, base *url.URL, otherSelect
 				classSelector := page.MustElements(*selector_item.AttrSelector)
 				for _, node := range classSelector {
 					text := node.MustText()
-					if text != "" {
-						db.SaveOtherAttr(urlValue, *selector_item.AttrName, text)
+					text_trim := strings.TrimSpace(text)
+					if text_trim != "" {
+						db.SaveOtherAttr(urlValue, *selector_item.AttrName, text_trim)
 					}
 				}
 
