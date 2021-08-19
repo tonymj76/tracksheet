@@ -104,7 +104,7 @@ func SearchProduct(context *gin.Context) {
 		return
 	}
 	search := fmt.Sprintf("%%%s%%", search_query)
-	db.DB.Scopes(db.Paginate(context)).Where("product_url LIKE ?", search).Find(&product_url).Count(&count)
+	db.DB.Scopes(db.Paginate(context)).Where("product_url ILIKE ?", search).Find(&product_url).Count(&count)
 	context.JSON(http.StatusOK,
 		gin.H{
 			"success": true,
@@ -204,7 +204,7 @@ func GetProductDetails(context *gin.Context) {
 		return
 	}
 	search := fmt.Sprintf("%%%s%%", search_query)
-	db.DB.Scopes(db.Paginate(context)).Where("product_url LIKE ?", search).Find(&product_details).Count(&count)
+	db.DB.Scopes(db.Paginate(context)).Where("product_url ILIKE ?", search).Or("attr_value ILIKE ?", search).Find(&product_details).Count(&count)
 	context.JSON(http.StatusOK,
 		gin.H{
 			"success": true,
