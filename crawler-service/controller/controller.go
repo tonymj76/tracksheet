@@ -167,32 +167,27 @@ func GetSelectorConfig(context *gin.Context) {
 
 func DeleteSelectorConfig(context *gin.Context) {
 	var config db.ProductSelector
+	var config2 []db.ProductSelector
+
 	link := context.Query("url")
 	attr_name := context.Query("attr_name")
 
-	if link == "" || attr_name == "" {
+	if link == "" {
 		context.JSON(http.StatusOK, gin.H{"success": false, "message": "url query or attr name cannot be blank"})
 		return
 	}
-	if err := db.DB.Where("root_url = ?", link).Where("attr_name = ?", attr_name).First(&config).Error; err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
-		return
+	if attr_name == "" {
+		if err := db.DB.Where("root_url = ?", link).Where("attr_name = ?", attr_name).First(&config).Error; err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Record not found!"})
+			return
+		}
+		db.DB.Delete(&config)
+		context.JSON(http.StatusOK, gin.H{"success": true, "message": "delete config successful"})
+	} else {
+		db.DB.Where("root_url = ?", link).Find(&config2)
+		db.DB.Delete(&config)
+		context.JSON(http.StatusOK, gin.H{"success": true, "message": "delete config successful"})
 	}
-	db.DB.Delete(&config)
-	context.JSON(http.StatusOK, gin.H{"success": true, "message": "delete config successful"})
-}
-
-func DeleteAllUrlSelectors(context *gin.Context) {
-	var config []db.ProductSelector
-	link := context.Query("url")
-
-	if link == "" {
-		context.JSON(http.StatusOK, gin.H{"success": false, "message": "url query cannot be blank"})
-		return
-	}
-	db.DB.Where("root_url = ?", link).Find(&config)
-	db.DB.Delete(&config)
-	context.JSON(http.StatusOK, gin.H{"success": true, "message": "delete config successful"})
 }
 
 func GetProductDetails(context *gin.Context) {

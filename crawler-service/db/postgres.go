@@ -27,8 +27,8 @@ type (
 	ProductDetails struct {
 		gorm.Model
 		AttrName   *string `gorm:"not null"`
-		AttrValue  *string `gorm:"not null"`
-		ProductUrl *string `gorm:"not null"`
+		AttrValue  *string `gorm:"unique_index:idx_first_second"`
+		ProductUrl *string `gorm:"unique_index:idx_first_second"`
 	}
 )
 

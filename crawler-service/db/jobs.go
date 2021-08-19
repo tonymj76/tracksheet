@@ -32,13 +32,8 @@ func SaveSelector(selector, root_url string) {
 }
 
 func SaveOtherAttr(product, attr_name, attr_value string) {
-	var product_detail []ProductDetails
-
-	if err := DB.Where("product_url = ?", &product).Where("attr_name = ?", attr_name).Where("attr_value = ?", attr_value).First(&product_detail); err != nil {
-		errs := DB.Create(&ProductDetails{ProductUrl: &product, AttrName: &attr_name, AttrValue: &attr_value}).Error
-		if errs != nil {
-			logrus.Warnln("ERROR WRITING TO DB ", err.Error)
-		}
+	errs := DB.Create(&ProductDetails{ProductUrl: &product, AttrName: &attr_name, AttrValue: &attr_value}).Error
+	if errs != nil {
+		logrus.Warnln("ERROR WRITING TO DB ", errs.Error())
 	}
-
 }

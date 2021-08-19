@@ -63,15 +63,18 @@ To access the crawl service access the end point GET `/crawler/scrap`, pass the 
 * worker (number of workers to configure)
 
 
+
 To get the product url details of a url GET `/crawler/product` pass the following queries
 
 * page (table page)
 * limit (table limit)
 * link (url item which you want to get their product)
 
+
 To delete a product url GET `crawler/productdelete` pass the following queries
 
 * link (product link you want to delete)
+
 
 
 To search for a product GET `/crawler/searchproduct` pass the following queries
@@ -80,9 +83,41 @@ To search for a product GET `/crawler/searchproduct` pass the following queries
 * limit (table limit)
 * k (the search string)
 
+
 To scrap a website sitemap, GET `/crawler/scrapsitemap` pass the following queries
 * link (the sitemap to scrap)
 
+
+To add selector config POST `/crawler/addconfig` pass the following body
+
+```
+  "attrname":"The attr name (eg title_selctor, pice_selector)",
+	"attrselector":"The class selector value (eg img-class)",
+	"rooturl":"The url with this config (eg https://www.amazon.com)"
+
+```
+
+**Note**: To fetch product url using the selctor config approach, add config with the attrname **product_selector**, else the engine would fall back to using the recursive approach to get product url
+
+
+To get selector config GET `crawler/getconfig`, pass in the following query
+* url (url of the value selector to get)
+
+
+
+To delete selector config GET `crawler/deleteconfig`, pass the following queries
+* url (url of the value selector to delete)
+* attr_name (the attr name to target, leave empty to delete all config for this url)
+
+
+
+To search for product details GET `crawler/productdetails`, pass the folowwing queries
+* k (search string)
+* page (table page)
+* limit (table limit)
+
+
+To delete product details GET `crawler/deleteproductdetail/:id`, where `:id` is the id of the product detail
 
 
 ### Amazon setup
