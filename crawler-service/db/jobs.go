@@ -32,8 +32,12 @@ func SaveSelector(selector, root_url string) {
 }
 
 func SaveOtherAttr(product, attr_name, attr_value string) {
-	errs := DB.Create(&ProductDetails{ProductUrl: &product, AttrName: &attr_name, AttrValue: &attr_value}).Error
-	if errs != nil {
-		logrus.Warnln("ERROR WRITING TO DB ", errs.Error())
+	err := DB.Create(&ProductDetails{ProductUrl: &product, AttrName: &attr_name, AttrValue: &attr_value}).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			//do nothing
+		} else {
+			logrus.Warnln("ERROR WRITING TO DB ", err)
+		}
 	}
 }
