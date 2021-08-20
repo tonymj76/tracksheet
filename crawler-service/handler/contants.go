@@ -237,6 +237,7 @@ func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfigurat
 	}
 }
 
+//scrap other attr values from page and save to DB
 func getOtherDetails(page *rod.Page, urlValue string, base *url.URL, otherSelector []db.ProductSelector) {
 	parsed_url, err := url.Parse(urlValue)
 	if err != nil {

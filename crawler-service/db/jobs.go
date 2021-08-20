@@ -11,7 +11,7 @@ type Context struct {
 	ProductList []string
 }
 
-//save to db
+//save product url to db
 func SaveToDB(product string) {
 	err := DB.Create(&URLProductLink{ProductURL: &product}).Error
 	if err != nil {
@@ -23,6 +23,7 @@ func SaveToDB(product string) {
 	}
 }
 
+//save selector config to db
 func SaveSelector(selector, root_url string) {
 	attr_name := "product_selector"
 	err := DB.Create(&ProductSelector{AttrSelector: &selector, AttrName: &attr_name, RootURL: &root_url}).Error
@@ -31,6 +32,7 @@ func SaveSelector(selector, root_url string) {
 	}
 }
 
+//save other attr value to db
 func SaveOtherAttr(product, attr_name, attr_value string) {
 	err := DB.Create(&ProductDetails{ProductUrl: &product, AttrName: &attr_name, AttrValue: &attr_value}).Error
 	if err != nil {
