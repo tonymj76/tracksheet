@@ -4,11 +4,8 @@ import (
 	"cache_service/crawler-service/config"
 	"cache_service/crawler-service/controller"
 	"cache_service/crawler-service/db"
-	"log"
-	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/robfig/cron"
 )
 
 func main() {
@@ -16,7 +13,6 @@ func main() {
 	config.LoadConfigFromJSON()
 
 	db.CreateDBConnection()
-	cron_job()
 	// rest api config
 	ginConfig := gin.Default()
 
@@ -31,18 +27,8 @@ func main() {
 		crawler.GET("/getconfig", controller.GetSelectorConfig)
 		crawler.GET("/deleteconfig", controller.DeleteSelectorConfig)
 		crawler.GET("/productdetails", controller.GetProductDetails)
-		crawler.GET("deleteproductdetail/:id", controller.DeleteProductDetails)
+		crawler.GET("/deleteproductdetail/:id", controller.DeleteProductDetails)
 	}
 
 	ginConfig.Run(config.GetEnv("PORT"))
-}
-
-func cron_job() {
-	// cron job to clean cache every 24 hours
-	cron_instance := cron.New()
-	cron_instance.AddFunc("@daily", func() {
-		log.Println("running daily job")
-		os.RemoveAll("cache/")
-	})
-	cron_instance.Start()
 }

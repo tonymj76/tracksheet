@@ -7,7 +7,6 @@ require (
 	github.com/go-rod/rod v0.101.4
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/lib/pq v1.6.0 // indirect
-	github.com/robfig/cron v1.2.0
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
