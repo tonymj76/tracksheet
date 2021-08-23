@@ -243,19 +243,25 @@ func getOtherDetails(page *rod.Page, urlValue string, base *url.URL, otherSelect
 	if err != nil {
 		fmt.Println("error parsing url ", err)
 	} else {
+		//check if host name is equal to given url host
 		if base.Hostname() == parsedURL.Hostname() {
+			//iterate over all the selector config
 			for _, selectorItem := range otherSelector {
+				//get all elements that with the selector attr value
 				classSelector := page.MustElements(*selectorItem.AttrSelector)
 				for _, node := range classSelector {
+					//if selector is an image selector
 					if strings.Contains(strings.ToLower(*selectorItem.AttrName), "image") {
+						//get all src sttr
 						srcValue := node.MustAttribute("src")
+						//if no attr found, transverse children
 						if srcValue == nil {
 							children, err := node.Elements(childrenSelector)
 							if err != nil {
 								fmt.Println("error parsing children ", err)
 								continue
 							}
-
+							//get src attr from children
 							for _, child := range children {
 								childSrc, _ := child.Attribute(`src`)
 								// if src found, add to DB
@@ -264,12 +270,15 @@ func getOtherDetails(page *rod.Page, urlValue string, base *url.URL, otherSelect
 								}
 							}
 						} else {
+							//save src to db
 							db.SaveOtherAttr(urlValue, *selectorItem.AttrName, *srcValue)
 						}
 					} else {
+						//get text out of node
 						text := node.MustText()
 						textTrim := strings.TrimSpace(text)
 						if textTrim != "" {
+							//save text to db
 							db.SaveOtherAttr(urlValue, *selectorItem.AttrName, textTrim)
 						}
 					}
