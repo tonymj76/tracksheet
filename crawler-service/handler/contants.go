@@ -237,26 +237,34 @@ func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfigurat
 	}
 }
 
-//scrap other attr values from page and save to DB
+// scrap other attr values from page and save to DB
 func getOtherDetails(page *rod.Page, urlValue string, base *url.URL, otherSelector []db.ProductSelector) {
-	parsed_url, err := url.Parse(urlValue)
+	parsedURL, err := url.Parse(urlValue)
 	if err != nil {
 		fmt.Println("error parsing url ", err)
 	} else {
-		if base.Hostname() == parsed_url.Hostname() {
-
-			for _, selector_item := range otherSelector {
-				classSelector := page.MustElements(*selector_item.AttrSelector)
+		if base.Hostname() == parsedURL.Hostname() {
+			for _, selectorItem := range otherSelector {
+				classSelector := page.MustElements(*selectorItem.AttrSelector)
 				for _, node := range classSelector {
 					text := node.MustText()
-					text_trim := strings.TrimSpace(text)
-					if text_trim != "" {
-						db.SaveOtherAttr(urlValue, *selector_item.AttrName, text_trim)
+					textTrim := strings.TrimSpace(text)
+					if textTrim != "" {
+						db.SaveOtherAttr(urlValue, *selectorItem.AttrName, textTrim)
+					}
+
+					if textTrim == "image" {
+						src := node.MustElement("src")
+
+						if src != nil {
+							if srcValue, err := src.Attribute("src"); err != nil {
+								db.SaveOtherAttr(*srcValue, *selectorItem.AttrName, textTrim)
+							}
+						}
 					}
 				}
 
 			}
 		}
 	}
-
 }
