@@ -246,20 +246,21 @@ func getOtherDetails(page *rod.Page, urlValue string, base *url.URL, otherSelect
 		if base.Hostname() == parsedURL.Hostname() {
 			for _, selectorItem := range otherSelector {
 				classSelector := page.MustElements(*selectorItem.AttrSelector)
-				for _, node := range classSelector {
-					text := node.MustText()
-					textTrim := strings.TrimSpace(text)
-					if textTrim != "" {
-						db.SaveOtherAttr(urlValue, *selectorItem.AttrName, textTrim)
-					}
 
-					if textTrim == "image" {
+				for _, node := range classSelector {
+					if strings.EqualFold(*selectorItem.AttrName, "image") {
 						src := node.MustElement("src")
 
 						if src != nil {
 							if srcValue, err := src.Attribute("src"); err != nil {
-								db.SaveOtherAttr(*srcValue, *selectorItem.AttrName, textTrim)
+								db.SaveOtherAttr(*srcValue, *selectorItem.AttrName, "image")
 							}
+						}
+					} else {
+						text := node.MustText()
+						textTrim := strings.TrimSpace(text)
+						if textTrim != "" {
+							db.SaveOtherAttr(urlValue, *selectorItem.AttrName, textTrim)
 						}
 					}
 				}
