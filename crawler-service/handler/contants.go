@@ -97,6 +97,7 @@ var (
 
 func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, selectorConfig, otherSelector []db.ProductSelector) {
 	allLinks := page.MustElements(linksSelector)
+	fmt.Println("Getiing with product selector.....")
 
 	for _, productSelector := range selectorConfig {
 		// get all nodes that contain the parsed selector
@@ -182,11 +183,10 @@ func queryWithSelector(page *rod.Page, base *url.URL, crawlConfig crawlConfigura
 		}
 	}
 
-	fmt.Println("Getiing with product selector.....")
 }
 
 func queryRecursively(page *rod.Page, base *url.URL, crawlConfig crawlConfiguration, otherSelector []db.ProductSelector) {
-	fmt.Println("Getting via recursion.......")
+	fmt.Println("Getiing without product selector.....")
 	allLinks := page.MustElements(linksSelector)
 	// iterate all items in the link list
 	for _, link := range allLinks {
@@ -251,7 +251,7 @@ func getOtherDetails(page *rod.Page, urlValue string, base *url.URL, otherSelect
 				classSelector := page.MustElements(*selectorItem.AttrSelector)
 				for _, node := range classSelector {
 					//if selector is an image selector
-					if strings.Contains(strings.ToLower(*selectorItem.AttrName), "image") {
+					if strings.Contains(strings.ToLower(*selectorItem.AttrName), "image") || strings.Contains(strings.ToLower(*selectorItem.AttrName), "img") {
 						//get all src sttr
 						srcValue := node.MustAttribute("src")
 						//if no attr found, transverse children
