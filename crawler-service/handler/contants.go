@@ -264,14 +264,29 @@ func getOtherDetails(page *rod.Page, urlValue string, base *url.URL, otherSelect
 							//get src attr from children
 							for _, child := range children {
 								childSrc, _ := child.Attribute(`src`)
-								// if src found, add to DB
 								if childSrc != nil {
-									db.SaveOtherAttr(urlValue, *selectorItem.AttrName, *childSrc)
+									// if src found, add to DB
+									//check if url is abs url
+									childSrcUrl, _ := url.Parse(*childSrc)
+									if childSrcUrl.IsAbs() {
+										//save src to db
+										db.SaveOtherAttr(urlValue, *selectorItem.AttrName, *childSrc)
+									} else {
+										resolvedsrcURL := base.ResolveReference(childSrcUrl)
+										db.SaveOtherAttr(urlValue, *selectorItem.AttrName, resolvedsrcURL.String())
+									}
 								}
 							}
 						} else {
-							//save src to db
-							db.SaveOtherAttr(urlValue, *selectorItem.AttrName, *srcValue)
+							//check if image url is absolue
+							srcValueUrl, _ := url.Parse(*srcValue)
+							if srcValueUrl.IsAbs() {
+								//save src to db
+								db.SaveOtherAttr(urlValue, *selectorItem.AttrName, *srcValue)
+							} else {
+								resolvedsrcURL := base.ResolveReference(srcValueUrl)
+								db.SaveOtherAttr(urlValue, *selectorItem.AttrName, resolvedsrcURL.String())
+							}
 						}
 					} else {
 						//get text out of node
