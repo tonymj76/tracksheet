@@ -8,19 +8,18 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 // controller to crawl url input
-func CrawlerGetController(ctx *gin.Context) {
-	link := ctx.Query("link")
+func CrawlerGetController(context *gin.Context) {
+	link := context.Query("link")
 	// depth value to crawl
-	depth := ctx.DefaultQuery("depth", "5")
+	depth := context.DefaultQuery("depth", "5")
 	// number of go workers
-	worker := ctx.DefaultQuery("worker", "5")
+	worker := context.DefaultQuery("worker", "5")
 	var config []db.ProductSelector
 	var other_config []db.ProductSelector
 
@@ -44,22 +43,20 @@ func CrawlerGetController(ctx *gin.Context) {
 		log.Panicln("error parsing string to url ", err)
 		return
 	}
-	// construct base url name
-	domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
-	attr_name := "product_selector"
-	// get all product selector config
-	db.DB.Where("root_url = ?", &domain).Where("attr_name = ?", attr_name).Find(&config)
-	// get other config that is not product selector congig
-	db.DB.Where("root_url = ?", &domain).Not("attr_name = ?", attr_name).Find(&other_config)
+	context.JSON(http.StatusOK, gin.H{"success": true, "message": "job is running..."})
 
 	go func() {
-		<-ctx.Request.Context().Done()
-		fmt.Println("request terminated")
-		os.Exit(0)
+		// construct base url name
+		domain := fmt.Sprintf("%s://%s", base.Scheme, base.Host)
+		attr_name := "product_selector"
+		// get all product selector config
+		db.DB.Where("root_url = ?", &domain).Where("attr_name = ?", attr_name).Find(&config)
+		// get other config that is not product selector congig
+		db.DB.Where("root_url = ?", &domain).Not("attr_name = ?", attr_name).Find(&other_config)
+
+		handler.GetURL(link, depth_val, worker_val, config, other_config)
 	}()
 
-	handler.GetURL(link, depth_val, worker_val, config, other_config)
-	ctx.JSON(http.StatusOK, gin.H{"success": true, "message": "job is complete"})
 }
 
 // controller to parse sitemap
