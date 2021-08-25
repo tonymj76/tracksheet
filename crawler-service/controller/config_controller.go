@@ -7,12 +7,17 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
-type SelectorConfig struct {
+type AttrDetails struct {
 	AttrName     string `json:"attrname"`
 	AttrSelector string `json:"attrselector"`
-	RootURL      string `json:"rooturl"`
+}
+
+type SelectorConfig struct {
+	RootURL     string        `json:"rooturl"`
+	AttrDetails []AttrDetails `json:"attrdetails"`
 }
 
 //add class selector config to db
@@ -24,37 +29,35 @@ func AddSelectorConfig(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-
-	//parse string input to be used as a class selector
-	if strings.HasPrefix(input.AttrSelector, ".") {
-		selector_config = input.AttrSelector
-		selector_config = strings.ReplaceAll(selector_config, " ", ".")
-	} else {
-		selector_config = fmt.Sprintf(".%v", input.AttrSelector)
-		selector_config = strings.ReplaceAll(selector_config, " ", ".")
-	}
-
 	//root url value should not empty
 	if input.RootURL == "" {
 		context.JSON(http.StatusOK, gin.H{"success": false, "message": "root url cannot be blank"})
 		return
 	}
 
-	//if a root url and attr name does not exist for a value, add it
-	selector := db.ProductSelector{
-		AttrName:     &input.AttrName,
-		AttrSelector: &selector_config,
-		RootURL:      &input.RootURL,
-	}
-	error := db.DB.Create(&selector).Error
+	for _, selectors := range input.AttrDetails {
+		//parse string input to be used as a class selector
+		if strings.HasPrefix(selectors.AttrSelector, ".") {
+			selector_config = selectors.AttrSelector
+			selector_config = strings.ReplaceAll(selector_config, " ", ".")
+		} else {
+			selector_config = fmt.Sprintf(".%v", selectors.AttrSelector)
+			selector_config = strings.ReplaceAll(selector_config, " ", ".")
+		}
+		//if a root url and attr name does not exist for a value, add it
+		selector := db.ProductSelector{
+			AttrName:     &selectors.AttrName,
+			AttrSelector: &selector_config,
+			RootURL:      &input.RootURL,
+		}
+		error := db.DB.Create(&selector).Error
+		if error != nil {
+			logrus.Warnln("ERROR WRITING TO DB ", error)
+		}
 
-	if error != nil {
-		context.JSON(http.StatusOK, gin.H{"success": false, "message": "error saving to DB", "error": error})
-		return
-	} else {
-		context.JSON(http.StatusOK, gin.H{"success": true, "message": "selector config saved to DB"})
-		return
 	}
+
+	context.JSON(http.StatusOK, gin.H{"success": true, "message": "selector config saved to DB"})
 }
 
 //get selector config for url

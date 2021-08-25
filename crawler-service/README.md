@@ -91,9 +91,18 @@ To scrap a website sitemap, GET `/crawler/scrapsitemap` pass the following queri
 To add selector config POST `/crawler/addconfig` pass the following body
 
 ```
-  "attrname":"The attr name (eg title_selctor, pice_selector)",
-	"attrselector":"The class selector value (eg img-class)",
-	"rooturl":"The url with this config (eg https://www.amazon.com)"
+  "rooturl":"The url the config is mapped to eg amazon.com",
+  //this allows to add multiple config at once
+  "attrdetails":[
+    {
+      "attrselector":"The class selector value (eg img-class)",
+	     "attrname":"The attr name (eg image_selector)",
+    },
+     {
+      "attrselector":"The class selector value (eg title-class)",
+	     "attrname":"The attr name (eg title_selector)",
+    }
+  ]
 
 ```
 
