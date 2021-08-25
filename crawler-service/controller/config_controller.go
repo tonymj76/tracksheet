@@ -25,6 +25,7 @@ func AddSelectorConfig(context *gin.Context) {
 	var (
 		input           SelectorConfig
 		selector_config string
+		config          db.ProductSelector
 	)
 
 	if err := context.ShouldBindJSON(&input); err != nil {
@@ -33,7 +34,13 @@ func AddSelectorConfig(context *gin.Context) {
 	}
 	//root url value should not empty
 	if input.RootURL == "" {
-		context.JSON(http.StatusOK, gin.H{"success": false, "message": "root url cannot be blank"})
+		context.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "root url cannot be blank"})
+		return
+	}
+
+	res := db.DB.Where("root_url = ?", input.RootURL).Limit(1).Find(&config)
+	if res.RowsAffected > 0 {
+		context.JSON(http.StatusBadRequest, gin.H{"success": false, "message": fmt.Sprintf("%s has been added already", input.RootURL)})
 		return
 	}
 
