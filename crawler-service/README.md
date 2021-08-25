@@ -81,20 +81,21 @@ To scrap a website sitemap, GET `/crawler/scrapsitemap` pass the following queri
 
 To add selector config POST `/crawler/addconfig` pass the following body
 
-```
+```json
+{
   "rooturl":"The url the config is mapped to eg amazon.com",
   //this allows to add multiple config at once
   "attrdetails":[
     {
       "attrselector":"The class selector value (eg img-class)",
-      "attrname":"The attr name (eg image_selector)",
+      "attrname":"The attr name (eg image_selector)"
     },
      {
       "attrselector":"The class selector value (eg title-class)",
       "attrname":"The attr name (eg title_selector)"
     }
   ]
-
+}
 ```
 
 **Note**: To fetch product url using the selctor config approach, add config with the attrname **product_selector**, else the engine would fall back to using the recursive approach to get product url
