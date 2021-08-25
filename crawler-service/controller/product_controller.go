@@ -17,9 +17,9 @@ import (
 func CrawlerGetController(context *gin.Context) {
 	link := context.Query("link")
 	// depth value to crawl
-	depth := context.DefaultQuery("depth", "5")
+	depth := context.DefaultQuery("depth", "10")
 	// number of go workers
-	worker := context.DefaultQuery("worker", "5")
+	worker := context.DefaultQuery("worker", "20")
 	var config []db.ProductSelector
 	var other_config []db.ProductSelector
 
