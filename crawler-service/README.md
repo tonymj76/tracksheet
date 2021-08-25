@@ -7,12 +7,10 @@
   - [Accessing end points](#accessing-end-points)
     - [Aamzon setup](#aamzon-setup)
 
-
-
 ## Setting up :gear
 
 -[] Create an env.json file in the crawler-service dir. The content of the file should be
-eg 
+eg
 
 ```sh
 {
@@ -25,15 +23,15 @@ eg
 
 ```
 
-* Be sure to have a progresql DB setup
-* To start the service run `go run service.go`
+- Be sure to have a progresql DB setup
 
-
+- To start the service run `go run service.go`
 
 <br /> <br />
 <hr />
 
 ## RUNNING THE CRAWLER
+
 - Ensure you have [GNU Make](https://www.gnu.org/software/make/) installed
 
 ```sh
@@ -42,8 +40,8 @@ make crawl
   
 <br /> <br />
 
-
 ## RUNNING THE CACHE SERVICE
+
 - Ensure you have [GNU Make](https://www.gnu.org/software/make/) installed
 
 ```sh
@@ -53,40 +51,33 @@ make cache
 <hr />
 <br /> <br />
 
-
 ## Accessing end points
 
 To access the crawl service access the end point GET `/crawler/scrap`, pass the following as queries
 
-* link (link of site to crawl)
-* depth (use if using recursive depth search method); an int value. The more the depth, the more itemsretrieved
-* worker (number of workers to configure)
-
-
+- link (link of site to crawl)
+- depth (use if using recursive depth search method); an int value. The more the depth, the more itemsretrieved
+- worker (number of workers to configure)
 
 To get the product url details of a url GET `/crawler/product` pass the following queries
 
-* page (table page)
-* limit (table limit)
-* link (url item which you want to get their product)
-
+- page (table page)
+- limit (table limit)
+- link (url item which you want to get their product)
 
 To delete a product url GET `crawler/productdelete` pass the following queries
 
-* link (product link you want to delete)
-
-
+- link (product link you want to delete)
 
 To search for a product GET `/crawler/searchproduct` pass the following queries
 
-* page (table page)
-* limit (table limit)
-* k (the search string)
-
+- page (table page)
+- limit (table limit)
+- k (the search string)
 
 To scrap a website sitemap, GET `/crawler/scrapsitemap` pass the following queries
-* link (the sitemap to scrap)
 
+- link (the sitemap to scrap)
 
 To add selector config POST `/crawler/addconfig` pass the following body
 
@@ -96,11 +87,11 @@ To add selector config POST `/crawler/addconfig` pass the following body
   "attrdetails":[
     {
       "attrselector":"The class selector value (eg img-class)",
-	     "attrname":"The attr name (eg image_selector)",
+      "attrname":"The attr name (eg image_selector)",
     },
      {
       "attrselector":"The class selector value (eg title-class)",
-	     "attrname":"The attr name (eg title_selector)",
+      "attrname":"The attr name (eg title_selector)"
     }
   ]
 
@@ -108,32 +99,30 @@ To add selector config POST `/crawler/addconfig` pass the following body
 
 **Note**: To fetch product url using the selctor config approach, add config with the attrname **product_selector**, else the engine would fall back to using the recursive approach to get product url
 
-
 To get selector config GET `crawler/getconfig`, pass in the following query
-* url (url of the value selector to get)
 
-
+- url (url of the value selector to get)
 
 To delete selector config GET `crawler/deleteconfig`, pass the following queries
-* url (url of the value selector to delete)
-* attr_name (the attr name to target, leave empty to delete all config for this url)
 
-
+- url (url of the value selector to delete)
+- attr_name (the attr name to target, leave empty to delete all config for this url)
 
 To search for product details GET `crawler/productdetails`, pass the folowwing queries
-* k (search string)
-* page (table page)
-* limit (table limit)
 
+- k (search string)
+- page (table page)
+- limit (table limit)
 
 To delete product details GET `crawler/deleteproductdetail/:id`, where `:id` is the id of the product detail
 
-
 ### Amazon setup
-* Upload the Go build and `env.json` to the amazon env with all the configuration options
-* Run the following command in the env to set up chromium (assuming it is a deb environment)
+
+- Upload the Go build and `env.json` to the amazon env with all the configuration options
+
+- Run the following command in the env to set up chromium (assuming it is a deb environment)
 `wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb`
 `sudo apt install ./google-chrome-stable_current_amd64.deb`
-For other env visit https://go-rod.github.io/#/compatibility?id=os:
+For other env visit <https://go-rod.github.io/#/compatibility?id=os>:
 
-* Start the server with `./goBuild` (avoid using sudo command to start the build)
+- Start the server with `./goBuild` (avoid using sudo command to start the build)

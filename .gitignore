@@ -6,3 +6,4 @@ tmps/
 crawler-service/cache/
 env.json
 .vscode
+web-ui

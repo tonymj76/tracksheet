@@ -22,8 +22,10 @@ type SelectorConfig struct {
 
 //add class selector config to db
 func AddSelectorConfig(context *gin.Context) {
-	var input SelectorConfig
-	var selector_config string
+	var (
+		input           SelectorConfig
+		selector_config string
+	)
 
 	if err := context.ShouldBindJSON(&input); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
