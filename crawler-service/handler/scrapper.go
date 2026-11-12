@@ -129,7 +129,7 @@ func getAllLinksOnPage(crawlConfig crawlConfiguration, selectorConfig, otherSele
 
 		if errors.Is(tryError, context.DeadlineExceeded) {
 			// code for timeout error
-			logrus.Errorf("TIMEOUT ON %s", crawlConfig.website, tryError)
+			logrus.Errorf("TIMEOUT ON %s %v", crawlConfig.website, tryError)
 		} else if tryError != nil {
 			// code for other types of error
 			logrus.Errorf("ERROR ON %v %v", crawlConfig.website, tryError)
